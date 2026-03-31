@@ -70,7 +70,7 @@ section{position:relative;z-index:1}
 .gallery-filters{display:flex;gap:.5rem;justify-content:center;margin-bottom:3rem;flex-wrap:wrap}
 .filter-btn{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.5rem 1.2rem;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:none;transition:all .3s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
 .filter-btn.active,.filter-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,45,120,.05)}
-.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr));gap:1.5rem}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1.5rem}
 .project-card{background:var(--surface);border:1px solid var(--border);overflow:hidden;transition:all .4s ease;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
 .project-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transition:transform .4s;z-index:2}
 .project-card:hover{border-color:rgba(255,45,120,.3);transform:translateY(-4px);box-shadow:var(--glow)}
@@ -218,137 +218,14 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 ::-webkit-scrollbar-thumb{background:var(--accent)}
 .page-section{display:none}
 .page-section.active{display:block}
-
-/* ── Tablet ── */
-@media(max-width:1024px){
-  nav{padding:1rem 2rem}
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
   .nav-links{display:none}
+  .page-wrap{padding:5rem 1.5rem 3rem}
   .about-grid{grid-template-columns:1fr;gap:3rem}
-  #settings-grid{grid-template-columns:1fr!important}
-  #sc-pricing{grid-column:1!important}
-  #sc-auth{grid-column:1!important}
-  #se-pricing>div{grid-template-columns:1fr!important}
-}
-
-/* ── Mobile ── */
-@media(max-width:768px){
-  /* cursor off on touch */
-  body{cursor:auto}
-  .cursor,.cursor-ring{display:none}
-
-  /* Nav */
-  nav{padding:.9rem 1.2rem}
-  .nav-links{display:none}
-  .nav-cta{display:none}
-  .nav-right{gap:.5rem}
-
-  /* Hero */
-  #hero{padding:6rem 1.2rem 3rem;min-height:auto}
-  .hero-title{font-size:clamp(2.4rem,11vw,4.5rem);letter-spacing:-.03em}
-  .hero-sub{font-size:.95rem;margin-bottom:2rem}
-  .hero-badge{font-size:.6rem}
-  .hero-stats{flex-wrap:wrap;gap:1.5rem 2.5rem;margin-top:3rem;padding-top:2rem;justify-content:center}
-  .stat-num{font-size:2rem}
-
-  /* Gallery grid */
-  .gallery-grid{grid-template-columns:1fr}
-  .gallery-filters{gap:.4rem}
-  .filter-btn{font-size:.6rem;padding:.4rem .9rem}
-
-  /* Project card */
-  .project-media{height:180px}
-
-  /* Page wraps — override inline styles */
-  .page-wrap,[style*="padding:7rem 4rem"],[style*="padding:4rem"]{
-    padding-left:1.2rem!important;
-    padding-right:1.2rem!important;
-  }
-  [style*="padding:7rem 4rem"]{
-    padding-top:5.5rem!important;
-    padding-bottom:2.5rem!important;
-  }
-  [style*="max-width:1400px"],[style*="max-width:1200px"],[style*="max-width:1100px"],[style*="max-width:700px"]{
-    max-width:100%!important;
-  }
-
-  /* Section headers */
-  .section-title{font-size:clamp(1.7rem,7vw,2.5rem)}
-  .section-header{margin-bottom:2.5rem}
-
-  /* About */
-  .about-grid{grid-template-columns:1fr;gap:2rem}
-  .about-image-frame{aspect-ratio:3/2;font-size:4rem}
-  .about-highlights{grid-template-columns:1fr 1fr}
-
-  /* Tools */
-  .tools-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem}
-  .tool-card{padding:1rem .7rem}
-  .tool-icon{font-size:1.5rem}
-
-  /* Pricing */
-  .pricing-grid{grid-template-columns:1fr;gap:1.2rem}
-  .pricing-card{padding:1.8rem 1.4rem}
-  .plan-price{font-size:2.4rem}
-  .delivery-banner{max-width:100%;margin-left:0;margin-right:0}
-
-  /* Forms */
+  .hero-stats{gap:2rem}
   .form-row{grid-template-columns:1fr}
-  .contact-form{margin-top:2rem}
-
-  /* Footer */
-  footer{padding:1.5rem 1.2rem;flex-direction:column;gap:.8rem;text-align:center}
-
-  /* Admin */
-  .admin-header{flex-direction:column;gap:1rem;align-items:flex-start}
-  .admin-project-item{flex-wrap:wrap;gap:.8rem}
-  .admin-project-thumb{width:60px;height:45px}
-  .admin-actions{width:100%;justify-content:flex-end}
-  #settings-grid{grid-template-columns:1fr!important}
-  #sc-pricing,#sc-auth{grid-column:1!important}
-  #se-pricing>div{grid-template-columns:1fr!important}
-  [style*="display:grid;grid-template-columns:1fr 320px"]{
-    grid-template-columns:1fr!important;
-  }
-
-  /* Login */
-  .login-box{width:92vw;padding:2rem 1.4rem}
-
-  /* Modal */
-  .modal{padding:1.8rem 1.2rem;clip-path:none;border-radius:0}
-  .modal-footer{flex-direction:column}
-  .modal-footer button{width:100%}
-
-  /* Stripe modal */
-  #stripe-overlay .modal-inner,[style*="max-width:480px"]{
-    width:95vw!important;
-    max-width:95vw!important;
-    padding:1.8rem 1.2rem!important;
-    clip-path:none!important;
-  }
-
-  /* Detail overlay */
-  #detail-overlay [style*="grid-template-columns:1fr 320px"]{
-    grid-template-columns:1fr!important;
-  }
-  #detail-hero-media{height:240px!important}
-  #detail-overlay>div{padding:4.5rem 1.2rem 2rem!important}
-  #detail-gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important}
-
-  /* Side menu */
-  .side-menu{width:88vw}
-  .side-menu a{font-size:1.3rem}
-
-  /* Hero actions */
-  .hero-actions{flex-direction:column;align-items:center}
-  .btn-primary,.btn-ghost{width:100%;max-width:320px;text-align:center;box-sizing:border-box}
-
-  /* Hamburger always visible */
-  .hamburger{display:flex}
-
-  /* Detail layout two-col → one-col on mobile */
-  .detail-layout{grid-template-columns:1fr!important}
-  #detail-hero-media{height:200px!important}
-  #detail-overlay>div{padding:4rem 1.2rem 2rem!important}
+  footer{flex-direction:column;gap:1rem;text-align:center}
 }</style>
 </head>
 <body>
@@ -433,7 +310,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
       </div>
     </div>
   </section>
-  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:2rem clamp(1.2rem,4vw,4rem) clamp(3rem,6vw,6rem)">
+  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:2rem 4rem 6rem">
     <div class="section-header">
       <span class="section-tag">// Portfolio</span>
       <h2 class="section-title">Trabalhos Recentes</h2>
@@ -448,7 +325,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== PORTFOLIO ===== -->
 <div id="page-portfolio" class="page-section">
-  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:7rem 4rem 4rem">
     <div class="section-header">
       <span class="section-tag">// Portfolio</span>
       <h2 class="section-title">Todos os Projetos</h2>
@@ -467,7 +344,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== ABOUT ===== -->
 <div id="page-about" class="page-section">
-  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:7rem 4rem 4rem">
     <div class="about-grid">
       <div style="position:relative">
         <div class="about-image-frame">
@@ -495,7 +372,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== TOOLS ===== -->
 <div id="page-tools" class="page-section">
-  <div class="tools-section-inner" style="padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(3rem,6vw,5rem);position:relative">
+  <div class="tools-section-inner" style="padding:7rem 4rem 5rem;position:relative">
     <div class="section-header">
       <span class="section-tag">// Stack Tecnológico</span>
       <h2 class="section-title">Ferramentas Utilizadas</h2>
@@ -524,7 +401,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== BUY ===== -->
 <div id="page-buy" class="page-section">
-  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:7rem 4rem 4rem">
     <div class="section-header">
       <span class="section-tag">// Comprar Agora</span>
       <h2 class="section-title">Escolhe o Teu Plano</h2>
@@ -614,7 +491,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- STRIPE CHECKOUT MODAL -->
 <div id="stripe-overlay" style="position:fixed;inset:0;background:rgba(5,8,16,.92);z-index:3500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(12px)" onclick="closeStripeModal(event)">
-  <div style="background:var(--surface);border:1px solid var(--border);width:min(480px,95vw);max-height:92vh;overflow-y:auto;padding:clamp(1.5rem,4vw,2.5rem);clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));position:relative" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border:1px solid var(--border);width:90%;max-width:480px;padding:2.5rem;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));position:relative" onclick="event.stopPropagation()">
     <button onclick="closeStripeModal()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--text-dim);font-size:1.2rem;cursor:none;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">✕</button>
 
     <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem">// Checkout Seguro</div>
@@ -655,7 +532,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== CONTACT ===== -->
 <div id="page-contact" class="page-section">
-  <div class="contact-section-inner" style="padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2.5rem,5vw,5rem);position:relative;background:var(--surface)">
+  <div class="contact-section-inner" style="padding:7rem 4rem 5rem;position:relative;background:var(--surface)">
     <div style="max-width:700px;margin:0 auto;text-align:center">
       <span class="section-tag">// Contacto</span>
       <h2 class="section-title">Vamos Criar<br><span style="color:var(--accent)">Algo Incrível</span></h2>
@@ -689,7 +566,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- ===== ADMIN ===== -->
 <div id="page-admin" class="page-section">
-  <div style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+  <div style="max-width:1200px;margin:0 auto;padding:7rem 4rem 4rem">
 
     <!-- Admin Header -->
     <div class="admin-header">
@@ -946,7 +823,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
     </div>
 
     <!-- Two col layout -->
-    <div style="display:grid;grid-template-columns:1fr min(320px,100%);gap:3rem;align-items:start" class="detail-layout">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:3rem;align-items:start">
       <div>
         <p style="color:var(--text-dim);line-height:1.8;font-size:1rem;margin-bottom:2rem" id="detail-desc"></p>
 
