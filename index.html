@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrisaDev — Desenvolvimento Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root {
+  --bg:#050810;--surface:#0a0f1e;--surface2:#0f1628;
+  --accent:#ff2d78;--accent2:#7c3aed;--accent3:#f59e0b;
+  --text:#e8eaf6;--text-dim:#6b7280;
+  --border:rgba(255,45,120,0.15);
+  --glow:0 0 40px rgba(255,45,120,0.2);
+  --glow-strong:0 0 80px rgba(255,45,120,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none}
+.cursor{width:12px;height:12px;background:var(--accent);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transition:transform .15s ease;mix-blend-mode:screen}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(255,45,120,.5);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transition:transform .4s ease,width .3s,height .3s}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9997;opacity:.4}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,45,120,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,45,120,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 4rem;display:flex;align-items:center;justify-content:space-between;background:rgba(5,8,16,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--text);text-decoration:none;letter-spacing:-.02em}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--text-dim);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:color .3s;position:relative;cursor:none}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--accent);transition:width .3s}
+.nav-links a:hover{color:var(--accent)}
+.nav-links a:hover::after{width:100%}
+.nav-right{display:flex;gap:.8rem;align-items:center}
+.nav-cta{font-family:'Space Mono',monospace;font-size:.75rem;padding:.6rem 1.4rem;background:transparent;border:1px solid var(--accent);color:var(--accent);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);cursor:none}
+.nav-cta:hover{background:var(--accent);color:var(--bg);box-shadow:var(--glow)}
+.nav-admin{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:.6rem 1rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.5);color:#a78bfa;text-decoration:none;transition:all .3s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);cursor:none}
+.nav-admin:hover{background:rgba(124,58,237,.35)}
+section{position:relative;z-index:1}
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;overflow:hidden}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+.hero-orb-1{width:600px;height:600px;background:rgba(255,45,120,.08);top:-200px;left:-200px;animation:drift 8s ease-in-out infinite alternate}
+.hero-orb-2{width:500px;height:500px;background:rgba(124,58,237,.1);bottom:-200px;right:-200px;animation:drift 10s ease-in-out infinite alternate-reverse}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(40px,30px)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);border:1px solid var(--border);padding:.4rem 1rem;margin-bottom:2rem;background:rgba(255,45,120,.05);clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);animation:fadeDown .8s ease both}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.95;letter-spacing:-.04em;margin-bottom:1.5rem;animation:fadeDown .8s ease .1s both}
+.hero-title .line-accent{color:var(--accent)}
+.hero-title .line-dim{color:var(--text-dim);font-style:italic;font-weight:400}
+.hero-sub{font-size:1.1rem;color:var(--text-dim);max-width:520px;margin:0 auto 3rem;line-height:1.7;animation:fadeDown .8s ease .2s both}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeDown .8s ease .3s both}
+.btn-primary{font-family:'Space Mono',monospace;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding:1rem 2.5rem;background:var(--accent);color:var(--bg);text-decoration:none;font-weight:700;transition:all .3s;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);box-shadow:0 0 30px rgba(0,212,255,.3);border:none;cursor:none;display:inline-block}
+.btn-primary:hover{box-shadow:var(--glow-strong);transform:translateY(-2px)}
+.btn-ghost{font-family:'Space Mono',monospace;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding:1rem 2.5rem;background:transparent;color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.15);transition:all .3s;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);cursor:none;display:inline-block}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.hero-stats{display:flex;gap:4rem;justify-content:center;margin-top:5rem;padding-top:3rem;border-top:1px solid var(--border);animation:fadeDown .8s ease .4s both}
+.stat{text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent);line-height:1}
+.stat-label{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-top:.4rem}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+/* SECTION HEADERS */
+.section-header{text-align:center;margin-bottom:4rem}
+.section-tag{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:block}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.section-desc{color:var(--text-dim);max-width:500px;margin:1rem auto 0;line-height:1.7}
+/* GALLERY */
+.gallery-filters{display:flex;gap:.5rem;justify-content:center;margin-bottom:3rem;flex-wrap:wrap}
+.filter-btn{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.5rem 1.2rem;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:none;transition:all .3s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
+.filter-btn.active,.filter-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,45,120,.05)}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr));gap:1.5rem}
+.project-card{background:var(--surface);border:1px solid var(--border);overflow:hidden;transition:all .4s ease;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
+.project-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transition:transform .4s;z-index:2}
+.project-card:hover{border-color:rgba(255,45,120,.3);transform:translateY(-4px);box-shadow:var(--glow)}
+.project-card:hover::before{transform:scaleX(1)}
+.project-media{width:100%;height:220px;background:var(--surface2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.project-media img,.project-media video{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.project-card:hover .project-media img,.project-card:hover .project-media video{transform:scale(1.05)}
+.project-media-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--surface2),#1a1f3a);font-size:3rem}
+.project-type-badge{position:absolute;top:12px;right:12px;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;background:rgba(0,0,0,.7);border:1px solid var(--border);color:var(--accent);backdrop-filter:blur(10px);z-index:3}
+.project-info{padding:1.5rem}
+.project-name{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:.5rem;letter-spacing:-.02em}
+.project-desc{font-size:.875rem;color:var(--text-dim);line-height:1.6;margin-bottom:1rem}
+.project-tech{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.tech-tag{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.08em;padding:.2rem .6rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#a78bfa}
+.project-footer{display:flex;align-items:center;justify-content:space-between}
+.project-link{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:.4rem;transition:gap .3s}
+.project-link:hover{gap:.7rem}
+.project-status{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:.3rem;color:var(--text-dim)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim)}
+.status-dot.live{background:#22c55e;box-shadow:0 0 6px #22c55e}
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center}
+.about-image-frame{width:100%;aspect-ratio:4/5;background:var(--surface);border:1px solid var(--border);clip-path:polygon(0 0,calc(100% - 30px) 0,100% 30px,100% 100%,30px 100%,0 calc(100% - 30px));display:flex;align-items:center;justify-content:center;font-size:6rem;position:relative;overflow:hidden}
+.about-image-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,45,120,.05),rgba(124,58,237,.1))}
+.about-corner{position:absolute;width:60px;height:60px}
+.about-corner-tl{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.about-corner-br{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent)}
+.about-highlights{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+.highlight-item{padding:1rem;background:var(--surface);border:1px solid var(--border);clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
+.highlight-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent);line-height:1}
+.highlight-label{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-top:.3rem}
+/* TOOLS */
+.tools-section-inner{position:relative;overflow:hidden;background:var(--surface)}
+.tools-section-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.tools-section-inner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent2),transparent)}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;max-width:1200px;margin:0 auto}
+.tool-card{padding:1.5rem 1rem;background:var(--surface2);border:1px solid var(--border);text-align:center;transition:all .3s;cursor:default;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,45,120,.05),transparent);opacity:0;transition:opacity .3s}
+.tool-card:hover{border-color:rgba(255,45,120,.3);transform:translateY(-3px)}
+.tool-card:hover::before{opacity:1}
+.tool-icon{font-size:2rem;margin-bottom:.8rem}
+.tool-name{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600}
+.tool-category{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-top:.3rem}
+/* PRICING */
+.delivery-banner{text-align:center;padding:1rem;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);margin-bottom:3rem;max-width:600px;margin-left:auto;margin-right:auto}
+.delivery-banner span{font-family:'Space Mono',monospace;font-size:.8rem;letter-spacing:.1em;color:var(--accent3)}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.pricing-card{background:var(--surface);border:1px solid var(--border);padding:2.5rem;position:relative;transition:all .4s;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,0 100%)}
+.pricing-card.featured{border-color:var(--accent);box-shadow:var(--glow)}
+.pricing-card.featured::before{content:'MAIS POPULAR';position:absolute;top:-1px;right:2rem;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.15em;padding:.3rem .8rem;background:var(--accent);color:var(--bg);font-weight:700}
+.pricing-card:hover{transform:translateY(-4px);border-color:rgba(255,45,120,.4)}
+.plan-name{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+.plan-price{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;letter-spacing:-.03em;margin-bottom:.3rem}
+.plan-price sup{font-size:1.2rem;vertical-align:top;margin-top:.8rem}
+.plan-sub{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--text-dim);letter-spacing:.08em;margin-bottom:2rem}
+.plan-features{list-style:none;margin-bottom:2rem}
+.plan-features li{font-size:.875rem;color:var(--text-dim);padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.7rem}
+.plan-features li::before{content:'›';color:var(--accent);font-size:1.2rem;line-height:1}
+.plan-delivery{display:flex;align-items:center;gap:.5rem;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--accent3);margin-bottom:1.5rem}
+/* CONTACT */
+.contact-section-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.contact-form{display:flex;flex-direction:column;gap:1rem;margin-top:3rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;text-align:left}
+.form-group label{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.5rem}
+.form-group input,.form-group textarea,.form-group select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.9rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .3s;appearance:none}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 1px rgba(255,45,120,.1)}
+.form-group textarea{min-height:120px;resize:vertical}
+/* ADMIN */
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.admin-projects-list{display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem}
+.admin-project-item{display:flex;align-items:center;gap:1.5rem;background:var(--surface);border:1px solid var(--border);padding:1rem 1.5rem;transition:border-color .3s}
+.admin-project-item:hover{border-color:rgba(255,45,120,.3)}
+.admin-project-thumb{width:80px;height:60px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden}
+.admin-project-thumb img{width:100%;height:100%;object-fit:cover}
+.admin-project-meta{flex:1}
+.admin-project-meta h3{font-family:'Syne',sans-serif;font-weight:600;font-size:1rem;margin-bottom:.2rem}
+.admin-project-meta p{font-size:.8rem;color:var(--text-dim);font-family:'Space Mono',monospace}
+.admin-actions{display:flex;gap:.5rem}
+.btn-edit,.btn-delete-sm{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;padding:.4rem .9rem;border:none;cursor:none;transition:all .3s}
+.btn-edit{background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.3);color:var(--accent)}
+.btn-edit:hover{background:rgba(255,45,120,.2)}
+.btn-delete-sm{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444}
+.btn-delete-sm:hover{background:rgba(239,68,68,.2)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(5,8,16,.9);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border);width:90%;max-width:600px;max-height:90vh;overflow-y:auto;padding:2.5rem;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
+.modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:2rem}
+.modal h2 span{color:var(--accent)}
+.modal .form-group{margin-bottom:1rem}
+.modal-footer{display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+/* LOGIN */
+.login-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;align-items:center;justify-content:center;display:none}
+.login-overlay.visible{display:flex}
+.login-box{background:var(--surface);border:1px solid var(--border);padding:3rem;width:380px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));text-align:center}
+.login-box h2{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:.5rem}
+.login-box p{color:var(--text-dim);font-size:.875rem;margin-bottom:2rem}
+.login-box input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.9rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;margin-bottom:1rem;transition:border-color .3s;display:block}
+.login-box input:focus{border-color:var(--accent)}
+.login-error{color:#ef4444;font-family:'Space Mono',monospace;font-size:.7rem;margin-bottom:1rem;display:none}
+/* HAMBURGER */
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;background:transparent;border:1px solid var(--border);padding:8px;cursor:none;transition:border-color .3s;flex-shrink:0}
+.hamburger:hover{border-color:var(--accent)}
+.hamburger span{display:block;height:1.5px;background:var(--text);transition:all .35s cubic-bezier(.4,0,.2,1);transform-origin:center}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);background:var(--accent)}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);background:var(--accent)}
+.side-menu{position:fixed;top:0;right:0;width:320px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:1500;transform:translateX(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;padding:6rem 2.5rem 3rem}
+.side-menu.open{transform:translateX(0)}
+.side-menu-overlay{position:fixed;inset:0;background:rgba(5,8,16,.6);z-index:1400;opacity:0;pointer-events:none;transition:opacity .4s;backdrop-filter:blur(4px)}
+.side-menu-overlay.open{opacity:1;pointer-events:all}
+.side-menu nav-items{display:flex;flex-direction:column}
+.side-menu a{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;color:var(--text-dim);text-decoration:none;padding:.6rem 0;border-bottom:1px solid var(--border);transition:all .3s;letter-spacing:-.02em;display:flex;align-items:center;justify-content:space-between}
+.side-menu a:hover{color:var(--accent);padding-left:.5rem}
+.side-menu a::after{content:'→';font-size:1rem;opacity:0;transform:translateX(-8px);transition:all .3s}
+.side-menu a:hover::after{opacity:1;transform:translateX(0)}
+.side-menu-admin{margin-top:auto;padding-top:2rem;border-top:1px solid var(--border)}
+.side-menu-admin a{font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#a78bfa;text-decoration:none;display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border:none;transition:color .3s}
+.side-menu-admin a:hover{color:var(--accent2)}
+/* FOOTER */
+footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem}
+.footer-logo span{color:var(--accent)}
+.footer-text{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text-dim)}
+/* ADMIN TABS */
+.admin-tab{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:.8rem 1.5rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);cursor:none;transition:all .3s;margin-bottom:-1px}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-tab:hover{color:var(--text)}
+/* SETTINGS CARDS */
+.settings-card{background:var(--surface);border:1px solid var(--border);padding:1.5rem;transition:border-color .3s}
+.settings-card:hover{border-color:rgba(255,45,120,.25)}
+.settings-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid var(--border)}
+.settings-card-header span{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem}
+.settings-view{font-size:.85rem;line-height:1.7;color:var(--text-dim)}
+.settings-view strong{color:var(--text);font-weight:500}
+.settings-view .sv-row{display:flex;gap:.5rem;align-items:baseline;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.settings-view .sv-label{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;width:100px}
+.settings-view .sv-val{color:var(--text);font-size:.85rem}
+.settings-edit-footer{display:flex;gap:.8rem;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.notification{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--accent);padding:1rem 1.5rem;font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:.05em;color:var(--accent);z-index:5000;transform:translateY(100px);opacity:0;transition:all .4s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
+.notification.show{transform:translateY(0);opacity:1}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent)}
+.page-section{display:none}
+.page-section.active{display:block}
+
+/* ── Tablet ── */
+@media(max-width:1024px){
+  nav{padding:1rem 2rem}
+  .nav-links{display:none}
+  .about-grid{grid-template-columns:1fr;gap:3rem}
+  #settings-grid{grid-template-columns:1fr!important}
+  #sc-pricing{grid-column:1!important}
+  #sc-auth{grid-column:1!important}
+  #se-pricing>div{grid-template-columns:1fr!important}
+}
+
+/* ── Mobile ── */
+@media(max-width:768px){
+  /* cursor off on touch */
+  body{cursor:auto}
+  .cursor,.cursor-ring{display:none}
+
+  /* Nav */
+  nav{padding:.9rem 1.2rem}
+  .nav-links{display:none}
+  .nav-cta{display:none}
+  .nav-right{gap:.5rem}
+
+  /* Hero */
+  #hero{padding:6rem 1.2rem 3rem;min-height:auto}
+  .hero-title{font-size:clamp(2.4rem,11vw,4.5rem);letter-spacing:-.03em}
+  .hero-sub{font-size:.95rem;margin-bottom:2rem}
+  .hero-badge{font-size:.6rem}
+  .hero-stats{flex-wrap:wrap;gap:1.5rem 2.5rem;margin-top:3rem;padding-top:2rem;justify-content:center}
+  .stat-num{font-size:2rem}
+
+  /* Gallery grid */
+  .gallery-grid{grid-template-columns:1fr}
+  .gallery-filters{gap:.4rem}
+  .filter-btn{font-size:.6rem;padding:.4rem .9rem}
+
+  /* Project card */
+  .project-media{height:180px}
+
+  /* Page wraps — override inline styles */
+  .page-wrap,[style*="padding:7rem 4rem"],[style*="padding:4rem"]{
+    padding-left:1.2rem!important;
+    padding-right:1.2rem!important;
+  }
+  [style*="padding:7rem 4rem"]{
+    padding-top:5.5rem!important;
+    padding-bottom:2.5rem!important;
+  }
+  [style*="max-width:1400px"],[style*="max-width:1200px"],[style*="max-width:1100px"],[style*="max-width:700px"]{
+    max-width:100%!important;
+  }
+
+  /* Section headers */
+  .section-title{font-size:clamp(1.7rem,7vw,2.5rem)}
+  .section-header{margin-bottom:2.5rem}
+
+  /* About */
+  .about-grid{grid-template-columns:1fr;gap:2rem}
+  .about-image-frame{aspect-ratio:3/2;font-size:4rem}
+  .about-highlights{grid-template-columns:1fr 1fr}
+
+  /* Tools */
+  .tools-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.7rem}
+  .tool-card{padding:1rem .7rem}
+  .tool-icon{font-size:1.5rem}
+
+  /* Pricing */
+  .pricing-grid{grid-template-columns:1fr;gap:1.2rem}
+  .pricing-card{padding:1.8rem 1.4rem}
+  .plan-price{font-size:2.4rem}
+  .delivery-banner{max-width:100%;margin-left:0;margin-right:0}
+
+  /* Forms */
+  .form-row{grid-template-columns:1fr}
+  .contact-form{margin-top:2rem}
+
+  /* Footer */
+  footer{padding:1.5rem 1.2rem;flex-direction:column;gap:.8rem;text-align:center}
+
+  /* Admin */
+  .admin-header{flex-direction:column;gap:1rem;align-items:flex-start}
+  .admin-project-item{flex-wrap:wrap;gap:.8rem}
+  .admin-project-thumb{width:60px;height:45px}
+  .admin-actions{width:100%;justify-content:flex-end}
+  #settings-grid{grid-template-columns:1fr!important}
+  #sc-pricing,#sc-auth{grid-column:1!important}
+  #se-pricing>div{grid-template-columns:1fr!important}
+  [style*="display:grid;grid-template-columns:1fr 320px"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Login */
+  .login-box{width:92vw;padding:2rem 1.4rem}
+
+  /* Modal */
+  .modal{padding:1.8rem 1.2rem;clip-path:none;border-radius:0}
+  .modal-footer{flex-direction:column}
+  .modal-footer button{width:100%}
+
+  /* Stripe modal */
+  #stripe-overlay .modal-inner,[style*="max-width:480px"]{
+    width:95vw!important;
+    max-width:95vw!important;
+    padding:1.8rem 1.2rem!important;
+    clip-path:none!important;
+  }
+
+  /* Detail overlay */
+  #detail-overlay [style*="grid-template-columns:1fr 320px"]{
+    grid-template-columns:1fr!important;
+  }
+  #detail-hero-media{height:240px!important}
+  #detail-overlay>div{padding:4.5rem 1.2rem 2rem!important}
+  #detail-gallery-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important}
+
+  /* Side menu */
+  .side-menu{width:88vw}
+  .side-menu a{font-size:1.3rem}
+
+  /* Hero actions */
+  .hero-actions{flex-direction:column;align-items:center}
+  .btn-primary,.btn-ghost{width:100%;max-width:320px;text-align:center;box-sizing:border-box}
+
+  /* Hamburger always visible */
+  .hamburger{display:flex}
+
+  /* Detail layout two-col → one-col on mobile */
+  .detail-layout{grid-template-columns:1fr!important}
+  #detail-hero-media{height:200px!important}
+  #detail-overlay>div{padding:4rem 1.2rem 2rem!important}
+}</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div style="font-size:2rem;margin-bottom:1rem">🔐</div>
+    <h2>Área <span style="color:var(--accent)">Admin</span></h2>
+    <p>Introduz as credenciais para aceder</p>
+    <input type="text" id="login-user" placeholder="Utilizador" />
+    <input type="password" id="login-pass" placeholder="Password" />
+    <div class="login-error" id="login-error">Credenciais inválidas</div>
+    <button class="btn-primary" style="width:100%;text-align:center" onclick="doLogin()">Entrar</button>
+    <div style="margin-top:1rem">
+      <a href="#" onclick="closeLogin()" style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text-dim);text-decoration:none;cursor:none">← Voltar ao site</a>
+    </div>
+  </div>
+</div>
+
+<!-- Side menu overlay -->
+<div class="side-menu-overlay" id="menu-overlay" onclick="closeMenu()"></div>
+
+<!-- Side Menu -->
+<div class="side-menu" id="side-menu">
+  <a href="#" onclick="navTo('home')" style="font-size:1.4rem">Início</a>
+  <a href="#" onclick="navTo('portfolio')">Portfolio</a>
+  <a href="#" onclick="navTo('about')">Sobre</a>
+  <a href="#" onclick="navTo('tools')">Ferramentas</a>
+  <a href="#" onclick="navTo('buy')">Comprar</a>
+  <a href="#" onclick="navTo('contact')">Contacto</a>
+  <div class="side-menu-admin">
+    <a href="#" onclick="openLogin();closeMenu();return false">🔐 Área Admin</a>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home');return false">Brisa<span>Dev</span></a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('home');return false">Início</a></li>
+    <li><a href="#" onclick="showPage('portfolio');return false">Portfolio</a></li>
+    <li><a href="#" onclick="showPage('about');return false">Sobre</a></li>
+    <li><a href="#" onclick="showPage('tools');return false">Ferramentas</a></li>
+    <li><a href="#" onclick="showPage('buy');return false">Comprar</a></li>
+    <li><a href="#" onclick="showPage('contact');return false">Contacto</a></li>
+  </ul>
+  <div class="nav-right">
+    <a class="nav-cta" href="#" onclick="showPage('buy');return false">Pedir Orçamento</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== HOME ===== -->
+<div id="page-home" class="page-section active">
+  <section id="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div>
+      <div class="hero-badge" data-cfg="hero-badge">⚡ Desenvolvimento Web Premium</div>
+      <h1 class="hero-title">
+        <span data-cfg="hero-line1">Sites que</span><br>
+        <span class="line-accent" data-cfg="hero-line2">Convertem.</span><br>
+        <span class="line-dim" data-cfg="hero-line3">Experiências que ficam.</span>
+      </h1>
+      <p class="hero-sub" data-cfg="hero-sub">Criamos websites modernos e futuristas que elevam a tua marca. Entrega entre 1 a 3 dias úteis.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#" onclick="showPage('buy');return false">Ver Planos</a>
+        <a class="btn-ghost" href="#" onclick="showPage('portfolio');return false">Ver Portfolio</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num" data-cfg="stat1-num">50+</div><div class="stat-label" data-cfg="stat1-lbl">Projetos</div></div>
+        <div class="stat"><div class="stat-num" data-cfg="stat2-num">1-3</div><div class="stat-label" data-cfg="stat2-lbl">Dias entrega</div></div>
+        <div class="stat"><div class="stat-num" data-cfg="stat3-num">100%</div><div class="stat-label" data-cfg="stat3-lbl">Satisfação</div></div>
+        <div class="stat"><div class="stat-num" data-cfg="stat4-num">24/7</div><div class="stat-label" data-cfg="stat4-lbl">Suporte</div></div>
+      </div>
+    </div>
+  </section>
+  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:2rem clamp(1.2rem,4vw,4rem) clamp(3rem,6vw,6rem)">
+    <div class="section-header">
+      <span class="section-tag">// Portfolio</span>
+      <h2 class="section-title">Trabalhos Recentes</h2>
+      <p class="section-desc">Uma seleção dos nossos projetos mais recentes.</p>
+    </div>
+    <div class="gallery-grid" id="home-gallery"></div>
+    <div style="text-align:center;margin-top:2.5rem">
+      <a class="btn-ghost" href="#" onclick="showPage('portfolio');return false">Ver Todos os Projetos →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTFOLIO ===== -->
+<div id="page-portfolio" class="page-section">
+  <div class="page-wrap" style="max-width:1400px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+    <div class="section-header">
+      <span class="section-tag">// Portfolio</span>
+      <h2 class="section-title">Todos os Projetos</h2>
+      <p class="section-desc">Explora o nosso portefólio completo.</p>
+    </div>
+    <div class="gallery-filters">
+      <button class="filter-btn active" onclick="filterProjects('all',this)">Todos</button>
+      <button class="filter-btn" onclick="filterProjects('website',this)">Websites</button>
+      <button class="filter-btn" onclick="filterProjects('ecommerce',this)">E-commerce</button>
+      <button class="filter-btn" onclick="filterProjects('webapp',this)">Web Apps</button>
+      <button class="filter-btn" onclick="filterProjects('landing',this)">Landing Pages</button>
+    </div>
+    <div class="gallery-grid" id="portfolio-gallery"></div>
+  </div>
+</div>
+
+<!-- ===== ABOUT ===== -->
+<div id="page-about" class="page-section">
+  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+    <div class="about-grid">
+      <div style="position:relative">
+        <div class="about-image-frame">
+          <div class="about-corner about-corner-tl"></div>
+          <div class="about-corner about-corner-br"></div>
+          <span>👨‍💻</span>
+        </div>
+      </div>
+      <div>
+        <span class="section-tag">// Quem Sou Eu</span>
+        <h2 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1.5rem;line-height:1.1">Criador de<br><span style="color:var(--accent)">Experiências Digitais</span></h2>
+        <p style="color:var(--text-dim);line-height:1.8;margin-bottom:1rem" data-cfg="about-p1">Olá! Sou o fundador da <strong style="color:var(--text)">BrisaDev</strong>, uma agência de desenvolvimento web focada em criar sites modernos, rápidos e visualmente impactantes.</p>
+        <p style="color:var(--text-dim);line-height:1.8;margin-bottom:1rem" data-cfg="about-p2">Com mais de <strong style="color:var(--text)">5 anos de experiência</strong> no desenvolvimento web, já ajudei dezenas de empresas a marcar presença online com sites que realmente funcionam.</p>
+        <p style="color:var(--text-dim);line-height:1.8" data-cfg="about-p3">A minha especialidade é transformar ideias em <strong style="color:var(--text)">experiências digitais futuristas</strong>, sempre com foco na performance, usabilidade e conversão.</p>
+        <div class="about-highlights">
+          <div class="highlight-item"><div class="highlight-num">50+</div><div class="highlight-label">Projetos entregues</div></div>
+          <div class="highlight-item"><div class="highlight-num">5</div><div class="highlight-label">Anos experiência</div></div>
+          <div class="highlight-item"><div class="highlight-num">1-3</div><div class="highlight-label">Dias de entrega</div></div>
+          <div class="highlight-item"><div class="highlight-num">100%</div><div class="highlight-label">Satisfação</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOOLS ===== -->
+<div id="page-tools" class="page-section">
+  <div class="tools-section-inner" style="padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(3rem,6vw,5rem);position:relative">
+    <div class="section-header">
+      <span class="section-tag">// Stack Tecnológico</span>
+      <h2 class="section-title">Ferramentas Utilizadas</h2>
+      <p class="section-desc">As melhores tecnologias para construir sites rápidos, modernos e escaláveis.</p>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-card"><div class="tool-icon">⚛️</div><div class="tool-name">React</div><div class="tool-category">Frontend</div></div>
+      <div class="tool-card"><div class="tool-icon">🔺</div><div class="tool-name">Next.js</div><div class="tool-category">Framework</div></div>
+      <div class="tool-card"><div class="tool-icon">🌊</div><div class="tool-name">Tailwind CSS</div><div class="tool-category">Estilo</div></div>
+      <div class="tool-card"><div class="tool-icon">🟨</div><div class="tool-name">JavaScript</div><div class="tool-category">Linguagem</div></div>
+      <div class="tool-card"><div class="tool-icon">🔷</div><div class="tool-name">TypeScript</div><div class="tool-category">Linguagem</div></div>
+      <div class="tool-card"><div class="tool-icon">🟢</div><div class="tool-name">Node.js</div><div class="tool-category">Backend</div></div>
+      <div class="tool-card"><div class="tool-icon">🐘</div><div class="tool-name">PostgreSQL</div><div class="tool-category">Base de Dados</div></div>
+      <div class="tool-card"><div class="tool-icon">🍃</div><div class="tool-name">MongoDB</div><div class="tool-category">Base de Dados</div></div>
+      <div class="tool-card"><div class="tool-icon">▲</div><div class="tool-name">Vercel</div><div class="tool-category">Deploy</div></div>
+      <div class="tool-card"><div class="tool-icon">🔥</div><div class="tool-name">Firebase</div><div class="tool-category">Backend</div></div>
+      <div class="tool-card"><div class="tool-icon">🎨</div><div class="tool-name">Figma</div><div class="tool-category">Design</div></div>
+      <div class="tool-card"><div class="tool-icon">🛍️</div><div class="tool-name">Shopify</div><div class="tool-category">E-commerce</div></div>
+      <div class="tool-card"><div class="tool-icon">📝</div><div class="tool-name">WordPress</div><div class="tool-category">CMS</div></div>
+      <div class="tool-card"><div class="tool-icon">🐙</div><div class="tool-name">GitHub</div><div class="tool-category">Controlo Versão</div></div>
+      <div class="tool-card"><div class="tool-icon">🔐</div><div class="tool-name">Supabase</div><div class="tool-category">Backend</div></div>
+      <div class="tool-card"><div class="tool-icon">🌐</div><div class="tool-name">Cloudflare</div><div class="tool-category">CDN / DNS</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BUY ===== -->
+<div id="page-buy" class="page-section">
+  <div class="page-wrap" style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+    <div class="section-header">
+      <span class="section-tag">// Comprar Agora</span>
+      <h2 class="section-title">Escolhe o Teu Plano</h2>
+      <p class="section-desc">Sites profissionais entregues em 1 a 3 dias úteis. Pagamento seguro via Stripe.</p>
+    </div>
+    <div class="delivery-banner">
+      <span>⚡ <strong>ENTREGA RÁPIDA</strong> — Recebe o teu site em <strong>1 a 3 dias úteis</strong> após aprovação do briefing</span>
+    </div>
+
+    <!-- Stripe notice -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:.8rem;margin-bottom:2.5rem;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text-dim)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      PAGAMENTO 100% SEGURO &nbsp;·&nbsp;
+      <svg width="32" height="14" viewBox="0 0 32 14" fill="none" xmlns="http://www.w3.org/2000/svg"><text x="0" y="11" font-family="sans-serif" font-size="11" font-weight="700" fill="#6b7280">stripe</text></svg>
+      &nbsp;·&nbsp; VISA &nbsp;·&nbsp; MASTERCARD &nbsp;·&nbsp; MB WAY
+    </div>
+
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-name">// Starter</div>
+        <div class="plan-price"><sup>€</sup><span data-cfg="p1-price">299</span></div>
+        <div class="plan-sub" data-cfg="p1-delivery">Entrega em 1-2 dias úteis</div>
+        <ul class="plan-features" data-cfg-list="p1-features">
+          <li>Landing Page Profissional</li>
+          <li>Design Personalizado</li>
+          <li>Mobile Responsivo</li>
+          <li>Formulário de Contacto</li>
+          <li>SEO Básico</li>
+          <li>1 Revisão Incluída</li>
+        </ul>
+        <div class="plan-delivery">⚡ <span data-cfg="p1-delivery-badge">Entrega: 1-2 dias úteis</span></div>
+        <div style="display:flex;gap:.6rem;flex-direction:column">
+          <button class="btn-primary" onclick="openStripeCheckout('starter')" style="border:none;width:100%;padding:.9rem">💳 Pagar Agora</button>
+          <button class="btn-ghost" onclick="sendPlanToWhatsApp('Landing Page Starter — €299')" style="width:100%;padding:.7rem;font-size:.7rem">💬 Falar no WhatsApp</button>
+        </div>
+      </div>
+      <div class="pricing-card featured">
+        <div class="plan-name">// Pro</div>
+        <div class="plan-price"><sup>€</sup><span data-cfg="p2-price">699</span></div>
+        <div class="plan-sub" data-cfg="p2-delivery">Entrega em 2-3 dias úteis</div>
+        <ul class="plan-features" data-cfg-list="p2-features">
+          <li>Site Completo (até 5 páginas)</li>
+          <li>Design Premium Único</li>
+          <li>Animações &amp; Interatividade</li>
+          <li>Painel de Gestão de Conteúdo</li>
+          <li>SEO Avançado</li>
+          <li>Google Analytics</li>
+          <li>3 Revisões Incluídas</li>
+          <li>Suporte 30 dias</li>
+        </ul>
+        <div class="plan-delivery">⚡ <span data-cfg="p2-delivery-badge">Entrega: 2-3 dias úteis</span></div>
+        <div style="display:flex;gap:.6rem;flex-direction:column">
+          <button class="btn-primary" onclick="openStripeCheckout('pro')" style="border:none;width:100%;padding:.9rem">💳 Pagar Agora</button>
+          <button class="btn-ghost" onclick="sendPlanToWhatsApp('Site Completo Pro — €699')" style="width:100%;padding:.7rem;font-size:.7rem">💬 Falar no WhatsApp</button>
+        </div>
+      </div>
+      <div class="pricing-card">
+        <div class="plan-name">// E-commerce</div>
+        <div class="plan-price"><sup>€</sup><span data-cfg="p3-price">1299</span></div>
+        <div class="plan-sub" data-cfg="p3-delivery">Entrega em 3 dias úteis</div>
+        <ul class="plan-features" data-cfg-list="p3-features">
+          <li>Loja Online Completa</li>
+          <li>Gestão de Produtos</li>
+          <li>Pagamentos Online (MB Way, Cartão)</li>
+          <li>Carrinho &amp; Checkout</li>
+          <li>Painel Admin Completo</li>
+          <li>SEO E-commerce</li>
+          <li>Revisões Ilimitadas</li>
+          <li>Suporte 60 dias</li>
+        </ul>
+        <div class="plan-delivery">⚡ <span data-cfg="p3-delivery-badge">Entrega: 3 dias úteis</span></div>
+        <div style="display:flex;gap:.6rem;flex-direction:column">
+          <button class="btn-primary" onclick="openStripeCheckout('ecommerce')" style="border:none;width:100%;padding:.9rem">💳 Pagar Agora</button>
+          <button class="btn-ghost" onclick="sendPlanToWhatsApp('Loja Online E-commerce — €1299')" style="width:100%;padding:.7rem;font-size:.7rem">💬 Falar no WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:3rem;padding:2rem;border:1px solid var(--border);max-width:600px;margin-left:auto;margin-right:auto">
+      <p style="font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:.1em;color:var(--text-dim)">Precisas de algo personalizado?</p>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin:.5rem 0">Fala Connosco</h3>
+      <p style="color:var(--text-dim);font-size:.875rem;margin-bottom:1.5rem">Cada projeto é único. Vamos criar algo especial juntos.</p>
+      <a class="btn-ghost" href="#" onclick="showPage('contact');return false">Contactar →</a>
+    </div>
+  </div>
+</div>
+
+<!-- STRIPE CHECKOUT MODAL -->
+<div id="stripe-overlay" style="position:fixed;inset:0;background:rgba(5,8,16,.92);z-index:3500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(12px)" onclick="closeStripeModal(event)">
+  <div style="background:var(--surface);border:1px solid var(--border);width:min(480px,95vw);max-height:92vh;overflow-y:auto;padding:clamp(1.5rem,4vw,2.5rem);clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));position:relative" onclick="event.stopPropagation()">
+    <button onclick="closeStripeModal()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--text-dim);font-size:1.2rem;cursor:none;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">✕</button>
+
+    <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem">// Checkout Seguro</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:.3rem" id="stripe-plan-name">Plano Pro</h2>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:1.5rem"><sup style="font-size:1rem">€</sup><span id="stripe-plan-price">699</span></div>
+
+    <div style="display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.5rem">
+      <div class="form-group"><label>Nome completo</label><input id="sc-name" type="text" placeholder="João Silva" required /></div>
+      <div class="form-group"><label>Email</label><input id="sc-email" type="email" placeholder="joao@email.com" required /></div>
+      <div class="form-group"><label>Telefone (opcional)</label><input id="sc-phone" type="tel" placeholder="+351 912 345 678" /></div>
+      <div class="form-group"><label>Breve descrição do projeto</label><textarea id="sc-desc" style="min-height:70px;resize:vertical" placeholder="Ex: Preciso de um site para restaurante com menu online..."></textarea></div>
+    </div>
+
+    <!-- Stripe Card Element placeholder -->
+    <div style="background:var(--surface2);border:1px solid var(--border);padding:1rem;margin-bottom:1.2rem;transition:border-color .3s" id="stripe-card-wrap">
+      <div id="stripe-card-element" style="min-height:24px"></div>
+      <div id="stripe-card-errors" style="color:#ef4444;font-family:'Space Mono',monospace;font-size:.65rem;margin-top:.5rem;display:none"></div>
+    </div>
+
+    <button id="stripe-submit-btn" onclick="handleStripeSubmit()" class="btn-primary" style="width:100%;border:none;padding:1rem;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:.6rem">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Pagar com Segurança
+    </button>
+
+    <div style="text-align:center;margin-top:1rem;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:.4rem">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Pagamento cifrado e seguro via Stripe
+    </div>
+
+    <!-- Success state -->
+    <div id="stripe-success" style="display:none;text-align:center;padding:2rem 0">
+      <div style="font-size:3rem;margin-bottom:1rem">✅</div>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:.5rem">Pagamento confirmado!</h3>
+      <p style="color:var(--text-dim);font-size:.875rem;line-height:1.6">Recebemos o teu pagamento. Entraremos em contacto em menos de 2 horas para iniciar o projeto.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTACT ===== -->
+<div id="page-contact" class="page-section">
+  <div class="contact-section-inner" style="padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2.5rem,5vw,5rem);position:relative;background:var(--surface)">
+    <div style="max-width:700px;margin:0 auto;text-align:center">
+      <span class="section-tag">// Contacto</span>
+      <h2 class="section-title">Vamos Criar<br><span style="color:var(--accent)">Algo Incrível</span></h2>
+      <p style="color:var(--text-dim);margin-top:1rem;line-height:1.7">Conta-nos o teu projeto e entraremos em contacto em menos de 24 horas.</p>
+      <form class="contact-form" onsubmit="submitForm(event)">
+        <div class="form-row">
+          <div class="form-group"><label>Nome</label><input id="cf-nome" type="text" placeholder="O teu nome" required /></div>
+          <div class="form-group"><label>Email</label><input id="cf-email" type="email" placeholder="email@exemplo.com" required /></div>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Projeto</label>
+          <select id="cf-tipo">
+            <option value="">Seleciona uma opção</option>
+            <option>Landing Page (Starter — €299)</option>
+            <option>Site Completo (Pro — €699)</option>
+            <option>Loja Online (E-commerce — €1299)</option>
+            <option>Projeto Personalizado</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Mensagem</label><textarea id="cf-msg" placeholder="Descreve o teu projeto, objetivos e referências..."></textarea></div>
+        <button type="submit" class="btn-primary" style="align-self:center;padding:1rem 3rem">Enviar para WhatsApp ⚡</button>
+      </form>
+      <div style="margin-top:3rem;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:1.5rem;margin-bottom:.5rem">📧</div><div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;color:var(--text-dim)">Email</div><div style="font-size:.875rem;margin-top:.3rem" data-cfg="email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="583a2a312b393c3d2e183d35393134763b3735">[email&#160;protected]</a></div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;margin-bottom:.5rem">📱</div><div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;color:var(--text-dim)">WhatsApp</div><div style="font-size:.875rem;margin-top:.3rem" data-cfg="whatsapp">+351 936 698 894</div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;margin-bottom:.5rem">⚡</div><div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;color:var(--text-dim)">Resposta</div><div style="font-size:.875rem;margin-top:.3rem" data-cfg="response">Menos de 24h</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div id="page-admin" class="page-section">
+  <div style="max-width:1200px;margin:0 auto;padding:clamp(4rem,8vw,7rem) clamp(1.2rem,4vw,4rem) clamp(2rem,4vw,4rem)">
+
+    <!-- Admin Header -->
+    <div class="admin-header">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800">Painel <span style="color:var(--accent)">Admin</span></h2>
+        <p style="color:var(--text-dim);font-family:'Space Mono',monospace;font-size:.7rem;margin-top:.3rem">Gestão completa do site</p>
+      </div>
+      <button class="btn-delete-sm" onclick="logoutAdmin()">Sair</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;margin-bottom:2.5rem;border-bottom:1px solid var(--border)">
+      <button class="admin-tab active" id="tab-projects" onclick="switchTab('projects')">📁 Projetos</button>
+      <button class="admin-tab" id="tab-settings" onclick="switchTab('settings')">⚙️ Configurações</button>
+    </div>
+
+    <!-- TAB: Projects -->
+    <div id="admin-tab-projects">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem">
+        <button class="btn-primary" onclick="openAddModal()">+ Adicionar Projeto</button>
+      </div>
+      <div class="admin-projects-list" id="admin-list"></div>
+    </div>
+
+    <!-- TAB: Settings -->
+    <div id="admin-tab-settings" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="settings-grid">
+
+        <!-- Contacto -->
+        <div class="settings-card" id="sc-contact">
+          <div class="settings-card-header">
+            <span>📞 Contacto</span>
+            <button class="btn-edit" onclick="editSection('contact')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-contact"></div>
+          <div class="settings-edit" id="se-contact" style="display:none">
+            <div class="form-group" style="margin-bottom:.8rem"><label>Email</label><input id="cfg-email" type="email" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>WhatsApp</label><input id="cfg-whatsapp" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Tempo de Resposta</label><input id="cfg-response" type="text" /></div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('contact')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('contact')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="settings-card" id="sc-hero">
+          <div class="settings-card-header">
+            <span>🚀 Hero</span>
+            <button class="btn-edit" onclick="editSection('hero')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-hero"></div>
+          <div class="settings-edit" id="se-hero" style="display:none">
+            <div class="form-group" style="margin-bottom:.8rem"><label>Badge</label><input id="cfg-hero-badge" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Título Linha 1</label><input id="cfg-hero-line1" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Título Linha 2 (destaque)</label><input id="cfg-hero-line2" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Título Linha 3 (subtil)</label><input id="cfg-hero-line3" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Subtítulo</label><textarea id="cfg-hero-sub" style="min-height:60px;resize:vertical"></textarea></div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('hero')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('hero')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="settings-card" id="sc-stats">
+          <div class="settings-card-header">
+            <span>📊 Estatísticas</span>
+            <button class="btn-edit" onclick="editSection('stats')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-stats"></div>
+          <div class="settings-edit" id="se-stats" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+              <div class="form-group"><label>Stat 1 Número</label><input id="cfg-stat1-num" type="text" /></div>
+              <div class="form-group"><label>Stat 1 Label</label><input id="cfg-stat1-lbl" type="text" /></div>
+              <div class="form-group"><label>Stat 2 Número</label><input id="cfg-stat2-num" type="text" /></div>
+              <div class="form-group"><label>Stat 2 Label</label><input id="cfg-stat2-lbl" type="text" /></div>
+              <div class="form-group"><label>Stat 3 Número</label><input id="cfg-stat3-num" type="text" /></div>
+              <div class="form-group"><label>Stat 3 Label</label><input id="cfg-stat3-lbl" type="text" /></div>
+              <div class="form-group"><label>Stat 4 Número</label><input id="cfg-stat4-num" type="text" /></div>
+              <div class="form-group"><label>Stat 4 Label</label><input id="cfg-stat4-lbl" type="text" /></div>
+            </div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('stats')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('stats')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="settings-card" id="sc-about">
+          <div class="settings-card-header">
+            <span>👤 Sobre</span>
+            <button class="btn-edit" onclick="editSection('about')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-about"></div>
+          <div class="settings-edit" id="se-about" style="display:none">
+            <div class="form-group" style="margin-bottom:.8rem"><label>Título</label><input id="cfg-about-title" type="text" /></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Parágrafo 1</label><textarea id="cfg-about-p1" style="min-height:70px;resize:vertical"></textarea></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Parágrafo 2</label><textarea id="cfg-about-p2" style="min-height:70px;resize:vertical"></textarea></div>
+            <div class="form-group" style="margin-bottom:.8rem"><label>Parágrafo 3</label><textarea id="cfg-about-p3" style="min-height:70px;resize:vertical"></textarea></div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('about')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('about')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preços -->
+        <div class="settings-card" id="sc-pricing" style="grid-column:1/-1">
+          <div class="settings-card-header">
+            <span>💰 Preços e Planos</span>
+            <button class="btn-edit" onclick="editSection('pricing')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-pricing"></div>
+          <div class="settings-edit" id="se-pricing" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem">
+              <div>
+                <p style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem;text-transform:uppercase">// Starter</p>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Preço (€)</label><input id="cfg-p1-price" type="text" /></div>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Entrega</label><input id="cfg-p1-delivery" type="text" /></div>
+                <div class="form-group"><label>Funcionalidades (uma por linha)</label><textarea id="cfg-p1-features" style="min-height:120px;resize:vertical"></textarea></div>
+              </div>
+              <div>
+                <p style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem;text-transform:uppercase">// Pro</p>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Preço (€)</label><input id="cfg-p2-price" type="text" /></div>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Entrega</label><input id="cfg-p2-delivery" type="text" /></div>
+                <div class="form-group"><label>Funcionalidades (uma por linha)</label><textarea id="cfg-p2-features" style="min-height:120px;resize:vertical"></textarea></div>
+              </div>
+              <div>
+                <p style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem;text-transform:uppercase">// E-commerce</p>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Preço (€)</label><input id="cfg-p3-price" type="text" /></div>
+                <div class="form-group" style="margin-bottom:.6rem"><label>Entrega</label><input id="cfg-p3-delivery" type="text" /></div>
+                <div class="form-group"><label>Funcionalidades (uma por linha)</label><textarea id="cfg-p3-features" style="min-height:120px;resize:vertical"></textarea></div>
+              </div>
+            </div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('pricing')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('pricing')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credenciais -->
+        <div class="settings-card" id="sc-auth" style="grid-column:1/-1">
+          <div class="settings-card-header">
+            <span>🔐 Credenciais de Acesso</span>
+            <button class="btn-edit" onclick="editSection('auth')">✏️ Editar</button>
+          </div>
+          <div class="settings-view" id="sv-auth"></div>
+          <div class="settings-edit" id="se-auth" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="form-group"><label>Utilizador</label><input id="cfg-auth-user" type="text" /></div>
+              <div class="form-group"><label>Nova Password</label><input id="cfg-auth-pass" type="password" placeholder="Deixa em branco para manter" /></div>
+            </div>
+            <div class="settings-edit-footer">
+              <button class="btn-ghost" style="padding:.5rem 1rem;font-size:.7rem" onclick="cancelEdit('auth')">Cancelar</button>
+              <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.7rem" onclick="saveSection('auth')">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">Adicionar <span>Projeto</span></h2>
+    <input type="hidden" id="edit-id" />
+    <div class="form-group"><label>Nome do Projeto</label><input type="text" id="f-name" placeholder="Ex: Site Restaurante Brasa" /></div>
+    <div class="form-group"><label>Descrição</label><textarea id="f-desc" placeholder="Descreve o projeto..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoria</label><select id="f-cat"><option value="website">Website</option><option value="ecommerce">E-commerce</option><option value="webapp">Web App</option><option value="landing">Landing Page</option></select></div>
+      <div class="form-group"><label>Status</label><select id="f-status"><option value="live">Publicado</option><option value="development">Em Desenvolvimento</option></select></div>
+    </div>
+    <div class="form-group"><label>URL do Projeto (se publicado)</label><input type="url" id="f-url" placeholder="https://exemplo.com" /></div>
+    <div class="form-group">
+      <label>Imagem / Thumbnail</label>
+      <div id="img-upload-area" onclick="document.getElementById('f-img-file').click()" style="border:1px dashed var(--border);background:var(--surface2);padding:1.5rem;text-align:center;cursor:none;transition:border-color .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div id="img-preview-wrap" style="display:none;margin-bottom:.8rem">
+          <img id="img-preview" src="" alt="preview" style="max-height:120px;max-width:100%;border:1px solid var(--border)" />
+          <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);margin-top:.5rem;cursor:none">Clica para trocar</div>
+        </div>
+        <div id="img-upload-label">
+          <div style="font-size:1.8rem;margin-bottom:.4rem">🖼️</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.08em;color:var(--accent)">Clica para carregar imagem</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);margin-top:.3rem">PNG, JPG, WEBP — máx. 5MB</div>
+        </div>
+      </div>
+      <input type="file" id="f-img-file" accept="image/*" style="display:none" onchange="handleImgUpload(this)" />
+      <input type="hidden" id="f-img" />
+    </div>
+    <div class="form-group">
+      <label>Vídeo (opcional)</label>
+      <div id="vid-upload-area" onclick="document.getElementById('f-video-file').click()" style="border:1px dashed var(--border);background:var(--surface2);padding:1.5rem;text-align:center;cursor:none;transition:border-color .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div id="vid-preview-wrap" style="display:none;margin-bottom:.8rem">
+          <video id="vid-preview" style="max-height:120px;max-width:100%;border:1px solid var(--border)" controls></video>
+          <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);margin-top:.5rem;cursor:none">Clica para trocar</div>
+        </div>
+        <div id="vid-upload-label">
+          <div style="font-size:1.8rem;margin-bottom:.4rem">🎬</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.08em;color:var(--accent)">Clica para carregar vídeo</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);margin-top:.3rem">MP4, WEBM, MOV — máx. 50MB</div>
+        </div>
+      </div>
+      <input type="file" id="f-video-file" accept="video/*" style="display:none" onchange="handleVidUpload(this)" />
+      <input type="hidden" id="f-video" />
+    </div>
+    <div class="form-group"><label>Tecnologias (separadas por vírgula)</label><input type="text" id="f-tech" placeholder="React, Next.js, Tailwind" /></div>
+    <div class="form-group"><label>Emoji / Ícone</label><input type="text" id="f-icon" placeholder="🌐" maxlength="4" /></div>
+    <div class="form-group">
+      <label>Galeria Extra — Fotos adicionais</label>
+      <div id="gallery-upload-area" onclick="document.getElementById('f-gallery-file').click()" style="border:1px dashed var(--border);background:var(--surface2);padding:1.2rem;text-align:center;cursor:none;transition:border-color .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">📸</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.08em;color:var(--accent)">Clica para adicionar fotos</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);margin-top:.2rem">Podes selecionar várias — PNG, JPG, WEBP</div>
+      </div>
+      <input type="file" id="f-gallery-file" accept="image/*" multiple style="display:none" onchange="handleGalleryUpload(this)" />
+      <div id="gallery-thumbs" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem"></div>
+      <input type="hidden" id="f-gallery" value="[]" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" style="padding:.7rem 1.4rem" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveProject()">Guardar Projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT DETAIL OVERLAY -->
+<div id="detail-overlay" style="position:fixed;inset:0;z-index:4000;background:var(--bg);overflow-y:auto;transform:translateY(100%);transition:transform .45s cubic-bezier(.4,0,.2,1);opacity:0">
+  <div style="max-width:1100px;margin:0 auto;padding:5rem 2rem 4rem">
+    <!-- Back -->
+    <button onclick="closeDetail()" style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:.6rem 1.2rem;cursor:none;transition:all .3s;margin-bottom:2.5rem;display:flex;align-items:center;gap:.5rem" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">← Voltar</button>
+
+    <!-- Hero media -->
+    <div id="detail-hero-media" style="width:100%;height:480px;background:var(--surface);border:1px solid var(--border);overflow:hidden;position:relative;margin-bottom:2rem;display:flex;align-items:center;justify-content:center;font-size:5rem"></div>
+
+    <!-- Title row -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem" id="detail-category"></div>
+        <h1 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.1" id="detail-name"></h1>
+      </div>
+      <div style="display:flex;gap:.8rem;align-items:center;flex-shrink:0">
+        <div id="detail-status-badge"></div>
+        <a id="detail-link" href="#" target="_blank" class="btn-primary" style="display:none;padding:.8rem 1.8rem">Visitar Site →</a>
+      </div>
+    </div>
+
+    <!-- Two col layout -->
+    <div style="display:grid;grid-template-columns:1fr min(320px,100%);gap:3rem;align-items:start" class="detail-layout">
+      <div>
+        <p style="color:var(--text-dim);line-height:1.8;font-size:1rem;margin-bottom:2rem" id="detail-desc"></p>
+
+        <!-- Extra gallery -->
+        <div id="detail-gallery-section" style="display:none">
+          <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem">// Galeria</div>
+          <div id="detail-gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.8rem"></div>
+        </div>
+
+        <!-- Video -->
+        <div id="detail-video-section" style="display:none;margin-top:2rem">
+          <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem">// Vídeo</div>
+          <video id="detail-video" controls style="width:100%;border:1px solid var(--border);max-height:400px"></video>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div style="background:var(--surface);border:1px solid var(--border);padding:1.5rem;position:sticky;top:6rem">
+          <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1.2rem">// Detalhes</div>
+          <div style="display:flex;flex-direction:column;gap:.8rem">
+            <div><div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">Categoria</div><div id="detail-cat-text" style="font-size:.9rem"></div></div>
+            <div><div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">Estado</div><div id="detail-status-text" style="font-size:.9rem"></div></div>
+            <div><div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Tecnologias</div><div id="detail-tech" style="display:flex;flex-wrap:wrap;gap:.4rem"></div></div>
+          </div>
+          <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+            <a href="#" onclick="sendPlanToWhatsApp('Projeto Personalizado');closeDetail();return false" class="btn-primary" style="display:block;text-align:center;padding:.9rem">Quero um site igual</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(5,8,16,.96);z-index:5000;align-items:center;justify-content:center;flex-direction:column">
+    <button onclick="closeLightbox()" style="position:absolute;top:1.5rem;right:1.5rem;background:transparent;border:1px solid var(--border);color:var(--text);width:40px;height:40px;font-size:1.2rem;cursor:none;transition:all .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">✕</button>
+    <button onclick="lbPrev()" style="position:absolute;left:1.5rem;top:50%;transform:translateY(-50%);background:transparent;border:1px solid var(--border);color:var(--text);width:44px;height:44px;font-size:1.4rem;cursor:none;transition:all .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">‹</button>
+    <img id="lightbox-img" src="" style="max-width:90vw;max-height:85vh;object-fit:contain;border:1px solid var(--border)" />
+    <div id="lightbox-counter" style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--text-dim);margin-top:1rem;letter-spacing:.1em"></div>
+    <button onclick="lbNext()" style="position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);background:transparent;border:1px solid var(--border);color:var(--text);width:44px;height:44px;font-size:1.4rem;cursor:none;transition:all .3s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">›</button>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification"></div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">Brisa<span>Dev</span></div>
+  <div class="footer-text">© 2025 BrisaDev. Todos os direitos reservados.</div>
+  <div style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text-dim)">Feito com ❤️ em Portugal</div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+(function() {
+  // ======= CURSOR =======
+  var cursor = document.getElementById('cursor');
+  var ring = document.getElementById('cursorRing');
+  var mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', function(e) {
+    mx=e.clientX; my=e.clientY;
+    cursor.style.left=(mx-6)+'px'; cursor.style.top=(my-6)+'px';
+  });
+  (function tick() {
+    rx+=(mx-rx)*.1; ry+=(my-ry)*.1;
+    ring.style.left=(rx-18)+'px'; ring.style.top=(ry-18)+'px';
+    requestAnimationFrame(tick);
+  })();
+  document.querySelectorAll('a,button,.filter-btn').forEach(function(el) {
+    el.addEventListener('mouseenter', function() { cursor.style.transform='scale(2)'; ring.style.width='50px'; ring.style.height='50px'; });
+    el.addEventListener('mouseleave', function() { cursor.style.transform='scale(1)'; ring.style.width='36px'; ring.style.height='36px'; });
+  });
+
+  // ======= API CONFIG =======
+  var API_BASE = '';  // mesmo domínio quando servido pelo Node.js
+  var _adminToken = sessionStorage.getItem('_adm_token') || '';
+
+  function apiHeaders(isAdmin) {
+    var h = { 'Content-Type': 'application/json' };
+    if (isAdmin) h['x-admin-token'] = _adminToken;
+    return h;
+  }
+
+  // ======= DATA (API + localStorage fallback) =======
+  var DEFAULT = [
+    {id:'1',name:"Restaurante Brasa",category:"website",status:"live",desc:"Site completo para restaurante com menu interativo, reservas online e galeria de pratos.",tech:["Next.js","Tailwind","Supabase"],url:"https://exemplo.com",img_url:"",icon:"🍽️"},
+    {id:'2',name:"LuxStore — Moda Premium",category:"ecommerce",status:"live",desc:"Loja online de moda com filtros avançados, wishlist e pagamentos MB Way.",tech:["React","Node.js","Stripe"],url:"https://exemplo.com",img_url:"",icon:"👗"},
+    {id:'3',name:"FitTrack App",category:"webapp",status:"live",desc:"Aplicação web para tracking de treinos com dashboard de progresso.",tech:["React","Firebase","Chart.js"],url:"https://exemplo.com",img_url:"",icon:"💪"},
+    {id:'4',name:"SolarTech Landing",category:"landing",status:"live",desc:"Landing page de alto impacto para empresa de energia solar.",tech:["HTML","CSS","JavaScript"],url:"https://exemplo.com",img_url:"",icon:"☀️"},
+    {id:'5',name:"Clínica Dentária Silva",category:"website",status:"live",desc:"Site institucional com agendamento online e informações de serviços.",tech:["WordPress","PHP","MySQL"],url:"https://exemplo.com",img_url:"",icon:"🦷"},
+    {id:'6',name:"TechVenture Dashboard",category:"webapp",status:"development",desc:"Dashboard analítico para startups com KPIs em tempo real.",tech:["Next.js","D3.js","PostgreSQL"],url:"",img_url:"",icon:"📊"}
+  ];
+
+  // Normalize project from API (snake_case img_url → img)
+  function normalize(p) {
+    return Object.assign({}, p, {
+      img:   p.img_url   || p.img   || '',
+      video: p.video_url || p.video || '',
+      desc:  p.description || p.desc || ''
+    });
+  }
+
+  // Cache
+  var _projectsCache = null;
+
+  async function loadProjects(forceRefresh) {
+    if (_projectsCache && !forceRefresh) return _projectsCache;
+    try {
+      var r = await fetch(API_BASE + '/api/projects');
+      if (!r.ok) throw new Error('API error');
+      var data = await r.json();
+      _projectsCache = data.map(normalize);
+      return _projectsCache;
+    } catch(e) {
+      console.warn('API indisponível, usando dados demo:', e.message);
+      return DEFAULT.map(normalize);
+    }
+  }
+
+  // Legacy sync wrappers (keep existing call sites working)
+  function load() { return _projectsCache || DEFAULT.map(normalize); }
+
+  // ======= RENDER =======
+  function card(p) {
+    var live=p.status==='live';
+    var media = '';
+    if (p.img) {
+      media = '<img src="'+p.img+'" alt="'+p.name+'" onerror="this.style.display=\'none\'">';
+    } else if (p.video) {
+      media = '<video src="'+p.video+'" muted loop playsinline style="width:100%;height:100%;object-fit:cover" onmouseenter="this.play()" onmouseleave="this.pause()"></video>';
+    }
+    return '<div class="project-card" data-cat="'+p.category+'" onclick="openDetail('+p.id+')" style="cursor:none">'
+      +'<div class="project-media">'
+      + media
+      +'<div class="project-media-placeholder" style="'+(p.img||p.video?'display:none':'')+'">'+( p.icon||'🌐')+'</div>'
+      +'<div class="project-type-badge">'+p.category+'</div>'
+      +'</div><div class="project-info">'
+      +'<div class="project-name">'+p.name+'</div>'
+      +'<div class="project-desc">'+p.desc+'</div>'
+      +'<div class="project-tech">'+(p.tech||[]).map(function(t){return '<span class="tech-tag">'+t+'</span>';}).join('')+'</div>'
+      +'<div class="project-footer">'
+      +'<span style="font-family:\'Space Mono\',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:.3rem">Ver Detalhes <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2l4 4-4 4M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>'
+      +'<div class="project-status"><div class="status-dot'+(live?' live':'')+'"></div>'+(live?'Publicado':'Em Dev')+'</div>'
+      +'</div></div></div>';
+  }
+
+  async function renderGalleries(filter) {
+    filter = filter || 'all';
+    var all = await loadProjects();
+    var filtered = filter === 'all' ? all : all.filter(function(p){ return p.category === filter; });
+    var hg = document.getElementById('home-gallery');
+    if (hg) hg.innerHTML = all.slice(0,3).map(card).join('');
+    var pg = document.getElementById('portfolio-gallery');
+    if (pg) pg.innerHTML = filtered.map(card).join('');
+  }
+
+  async function renderAdmin() {
+    var list = document.getElementById('admin-list');
+    if (!list) return;
+    list.innerHTML = '<div style="color:var(--text-dim);font-family:\'Space Mono\',monospace;font-size:.7rem;padding:1rem">A carregar...</div>';
+    var all = await loadProjects(true);
+    list.innerHTML = all.map(function(p){
+      return '<div class="admin-project-item">'
+        +'<div class="admin-project-thumb">'+(p.img?'<img src="'+p.img+'" onerror="this.style.display=\'none\'">':p.icon||'🌐')+'</div>'
+        +'<div class="admin-project-meta"><h3>'+p.name+'</h3><p>'+p.category+' • '+(p.status==='live'?'✅ Publicado':'🔧 Em Dev')+'</p></div>'
+        +'<div class="admin-actions">'
+        +'<button class="btn-edit" onclick="openEditModal(\''+p.id+'\')">✏️ Editar</button>'
+        +'<button class="btn-delete-sm" onclick="deleteProject(\''+p.id+'\')">🗑️ Apagar</button>'
+        +'</div></div>';
+    }).join('');
+  }
+
+  // ======= EXPOSED GLOBALS =======
+  window.filterProjects = function(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    renderGalleries(cat);
+  };
+
+  window.showPage = function(page) {
+    if(page==='admin' && !sessionStorage.getItem('_adm')) { window.openLogin(); return; }
+    document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
+    var t=document.getElementById('page-'+page);
+    if(t){ t.classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
+    if(page==='admin') renderAdmin();
+    if(page==='portfolio') renderGalleries();
+  };
+
+  window.openLogin = function() {
+    document.getElementById('login-overlay').classList.add('visible');
+  };
+  window.closeLogin = function() {
+    document.getElementById('login-overlay').classList.remove('visible');
+  };
+  window.doLogin = function() {
+    var u=document.getElementById('login-user').value;
+    var p=document.getElementById('login-pass').value;
+    if(u==='brisadev'&&p==='brisa2025'){
+      sessionStorage.setItem('_adm','1');
+      window.closeLogin();
+      window.showPage('admin');
+    } else {
+      var err=document.getElementById('login-error');
+      err.style.display='block';
+      setTimeout(function(){err.style.display='none';},3000);
+    }
+  };
+  window.logoutAdmin = function() {
+    sessionStorage.removeItem('_adm');
+    window.showPage('home');
+  };
+
+  // ======= HAMBURGER =======
+  window.toggleMenu = function() {
+    var hb = document.getElementById('hamburger');
+    var sm = document.getElementById('side-menu');
+    var ov = document.getElementById('menu-overlay');
+    hb.classList.toggle('open');
+    sm.classList.toggle('open');
+    ov.classList.toggle('open');
+  };
+  window.closeMenu = function() {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('side-menu').classList.remove('open');
+    document.getElementById('menu-overlay').classList.remove('open');
+  };
+  window.navTo = function(page) {
+    window.closeMenu();
+    setTimeout(function(){ window.showPage(page); }, 200);
+    return false;
+  };
+
+  // ======= VIDEO UPLOAD =======
+  window.handleVidUpload = function(input) {
+    var file = input.files[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) { notify('⚠️ Vídeo demasiado grande! Máx. 50MB'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result;
+      document.getElementById('f-video').value = b64;
+      var vp = document.getElementById('vid-preview');
+      vp.src = b64;
+      document.getElementById('vid-preview-wrap').style.display = 'block';
+      document.getElementById('vid-upload-label').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function resetVidUpload(existingVid) {
+    document.getElementById('f-video-file').value = '';
+    document.getElementById('f-video').value = existingVid || '';
+    if (existingVid) {
+      document.getElementById('vid-preview').src = existingVid;
+      document.getElementById('vid-preview-wrap').style.display = 'block';
+      document.getElementById('vid-upload-label').style.display = 'none';
+    } else {
+      document.getElementById('vid-preview-wrap').style.display = 'none';
+      document.getElementById('vid-upload-label').style.display = 'block';
+    }
+  }
+
+  // ======= GALLERY UPLOAD =======
+  var _galleryImages = [];
+
+  window.handleGalleryUpload = function(input) {
+    var files = Array.from(input.files);
+    var promises = files.map(function(file) {
+      return new Promise(function(resolve) {
+        if (file.size > 8 * 1024 * 1024) { notify('⚠️ Foto demasiado grande! Máx. 8MB'); resolve(null); return; }
+        var r = new FileReader();
+        r.onload = function(e) { resolve(e.target.result); };
+        r.readAsDataURL(file);
+      });
+    });
+    Promise.all(promises).then(function(results) {
+      results.filter(Boolean).forEach(function(b64) { _galleryImages.push(b64); });
+      document.getElementById('f-gallery').value = JSON.stringify(_galleryImages);
+      renderGalleryThumbs();
+    });
+  };
+
+  function renderGalleryThumbs() {
+    var container = document.getElementById('gallery-thumbs');
+    if (!container) return;
+    container.innerHTML = _galleryImages.map(function(src, i) {
+      return '<div style="position:relative;width:80px;height:60px;flex-shrink:0">'
+        +'<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border:1px solid var(--border)">'
+        +'<button onclick="removeGalleryImg('+i+')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#ef4444;border:none;color:#fff;font-size:.7rem;border-radius:50%;cursor:none;line-height:1">✕</button>'
+        +'</div>';
+    }).join('');
+  }
+
+  window.removeGalleryImg = function(idx) {
+    _galleryImages.splice(idx, 1);
+    document.getElementById('f-gallery').value = JSON.stringify(_galleryImages);
+    renderGalleryThumbs();
+  };
+
+  function resetGalleryUpload(existing) {
+    _galleryImages = existing ? (typeof existing === 'string' ? JSON.parse(existing) : existing) : [];
+    document.getElementById('f-gallery').value = JSON.stringify(_galleryImages);
+    renderGalleryThumbs();
+  }
+
+  // ======= PROJECT DETAIL =======
+  var _lbImages = [], _lbIndex = 0;
+
+  window.openDetail = function(id) {
+    var p = load().find(function(x){ return x.id === id; });
+    if (!p) return;
+    var overlay = document.getElementById('detail-overlay');
+    var live = p.status === 'live';
+
+    // Hero media
+    var hm = document.getElementById('detail-hero-media');
+    hm.innerHTML = '';
+    if (p.img) {
+      var im = document.createElement('img');
+      im.src = p.img; im.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      hm.appendChild(im);
+    } else if (p.video) {
+      var vm = document.createElement('video');
+      vm.src = p.video; vm.controls = true; vm.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      hm.appendChild(vm);
+    } else {
+      hm.textContent = p.icon || '🌐';
+    }
+
+    // Text fields
+    document.getElementById('detail-name').textContent = p.name;
+    document.getElementById('detail-category').textContent = '// ' + p.category;
+    document.getElementById('detail-desc').textContent = p.desc;
+    document.getElementById('detail-cat-text').textContent = p.category;
+    document.getElementById('detail-status-text').innerHTML = live
+      ? '<span style="color:#22c55e">● Publicado</span>'
+      : '<span style="color:var(--text-dim)">○ Em Desenvolvimento</span>';
+
+    // Status badge
+    document.getElementById('detail-status-badge').innerHTML = live
+      ? '<span style="font-family:Space Mono,monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .8rem;border:1px solid #22c55e;color:#22c55e;background:rgba(34,197,94,.08)">Publicado</span>'
+      : '<span style="font-family:Space Mono,monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .8rem;border:1px solid var(--border);color:var(--text-dim)">Em Dev</span>';
+
+    // Visit link
+    var lnk = document.getElementById('detail-link');
+    if (live && p.url) { lnk.href = p.url; lnk.style.display = 'inline-block'; }
+    else { lnk.style.display = 'none'; }
+
+    // Tech tags
+    document.getElementById('detail-tech').innerHTML = (p.tech||[]).map(function(t){
+      return '<span class="tech-tag">'+t+'</span>';
+    }).join('');
+
+    // Gallery
+    var gallery = p.gallery ? (typeof p.gallery === 'string' ? JSON.parse(p.gallery) : p.gallery) : [];
+    var gallSec = document.getElementById('detail-gallery-section');
+    var gallGrid = document.getElementById('detail-gallery-grid');
+    if (gallery.length > 0) {
+      gallSec.style.display = 'block';
+      _lbImages = gallery;
+      gallGrid.innerHTML = gallery.map(function(src, i) {
+        return '<div onclick="openLightbox('+i+')" style="aspect-ratio:4/3;overflow:hidden;cursor:none;border:1px solid var(--border);transition:all .3s" onmouseover="this.style.borderColor=\'var(--accent)\';this.style.transform=\'scale(1.02)\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.transform=\'scale(1)\'">'
+          +'<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;transition:transform .4s" onmouseover="this.style.transform=\'scale(1.08)\'" onmouseout="this.style.transform=\'scale(1)\'">'
+          +'</div>';
+      }).join('');
+    } else {
+      gallSec.style.display = 'none';
+    }
+
+    // Video (separate section)
+    var vidSec = document.getElementById('detail-video-section');
+    if (p.video && p.img) {
+      vidSec.style.display = 'block';
+      document.getElementById('detail-video').src = p.video;
+    } else {
+      vidSec.style.display = 'none';
+    }
+
+    // Show overlay
+    overlay.style.display = 'block';
+    requestAnimationFrame(function() {
+      overlay.style.transform = 'translateY(0)';
+      overlay.style.opacity = '1';
+    });
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDetail = function() {
+    var overlay = document.getElementById('detail-overlay');
+    overlay.style.transform = 'translateY(100%)';
+    overlay.style.opacity = '0';
+    setTimeout(function() { overlay.style.display = 'none'; }, 450);
+    document.body.style.overflow = '';
+  };
+
+  // Lightbox
+  window.openLightbox = function(idx) {
+    _lbIndex = idx;
+    var lb = document.getElementById('lightbox');
+    lb.style.display = 'flex';
+    updateLightbox();
+  };
+  window.closeLightbox = function() {
+    document.getElementById('lightbox').style.display = 'none';
+  };
+  window.lbPrev = function() {
+    _lbIndex = (_lbIndex - 1 + _lbImages.length) % _lbImages.length;
+    updateLightbox();
+  };
+  window.lbNext = function() {
+    _lbIndex = (_lbIndex + 1) % _lbImages.length;
+    updateLightbox();
+  };
+  function updateLightbox() {
+    document.getElementById('lightbox-img').src = _lbImages[_lbIndex];
+    document.getElementById('lightbox-counter').textContent = (_lbIndex+1) + ' / ' + _lbImages.length;
+  }
+  document.addEventListener('keydown', function(e) {
+    if (document.getElementById('lightbox').style.display === 'flex') {
+      if (e.key === 'ArrowLeft') window.lbPrev();
+      if (e.key === 'ArrowRight') window.lbNext();
+      if (e.key === 'Escape') window.closeLightbox();
+    } else if (document.getElementById('detail-overlay').style.transform === 'translateY(0px)' || document.getElementById('detail-overlay').style.transform === 'translateY(0)') {
+      if (e.key === 'Escape') window.closeDetail();
+    }
+  });
+
+  window.handleImgUpload = function(input) {
+    var file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { notify('⚠️ Imagem demasiado grande! Máx. 5MB'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result;
+      document.getElementById('f-img').value = b64;
+      document.getElementById('img-preview').src = b64;
+      document.getElementById('img-preview-wrap').style.display = 'block';
+      document.getElementById('img-upload-label').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function resetImgUpload(existingImg) {
+    document.getElementById('f-img-file').value = '';
+    document.getElementById('f-img').value = existingImg || '';
+    if (existingImg) {
+      document.getElementById('img-preview').src = existingImg;
+      document.getElementById('img-preview-wrap').style.display = 'block';
+      document.getElementById('img-upload-label').style.display = 'none';
+    } else {
+      document.getElementById('img-preview-wrap').style.display = 'none';
+      document.getElementById('img-upload-label').style.display = 'block';
+    }
+  }
+
+  window.openAddModal = function() {
+    document.getElementById('modal-title').innerHTML='Adicionar <span>Projeto</span>';
+    document.getElementById('edit-id').value='';
+    ['f-name','f-desc','f-url','f-tech'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('f-cat').value='website';
+    document.getElementById('f-status').value='live';
+    document.getElementById('f-icon').value='🌐';
+    resetImgUpload('');
+    resetVidUpload('');
+    resetGalleryUpload([]);
+    document.getElementById('modal-overlay').classList.add('open');
+  };
+  window.openEditModal = function(id) {
+    var p=load().find(function(x){return x.id===id;});
+    if(!p) return;
+    document.getElementById('modal-title').innerHTML='Editar <span>Projeto</span>';
+    document.getElementById('edit-id').value=p.id;
+    document.getElementById('f-name').value=p.name||'';
+    document.getElementById('f-desc').value=p.desc||'';
+    document.getElementById('f-cat').value=p.category||'website';
+    document.getElementById('f-status').value=p.status||'live';
+    document.getElementById('f-url').value=p.url||'';
+    document.getElementById('f-tech').value=(p.tech||[]).join(', ');
+    document.getElementById('f-icon').value=p.icon||'🌐';
+    resetImgUpload(p.img||'');
+    resetVidUpload(p.video||'');
+    resetGalleryUpload(p.gallery||[]);
+    document.getElementById('modal-overlay').classList.add('open');
+  };
+  window.closeModal = function() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  };
+  document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if(e.target===this) window.closeModal();
+  });
+
+  window.saveProject = async function() {
+    var eid = document.getElementById('edit-id').value;
+    var data = {
+      name:        document.getElementById('f-name').value,
+      description: document.getElementById('f-desc').value,
+      category:    document.getElementById('f-cat').value,
+      status:      document.getElementById('f-status').value,
+      url:         document.getElementById('f-url').value,
+      tech:        document.getElementById('f-tech').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+      icon:        document.getElementById('f-icon').value || '🌐',
+      gallery:     JSON.parse(document.getElementById('f-gallery').value || '[]')
+    };
+    if (!data.name) { notify('⚠️ Nome obrigatório!'); return; }
+
+    var btn = document.querySelector('#modal-overlay .btn-primary');
+    if (btn) { btn.textContent = '⏳ A guardar...'; btn.disabled = true; }
+
+    // Upload image if base64 (new file selected)
+    var imgVal = document.getElementById('f-img').value;
+    if (imgVal && imgVal.startsWith('data:')) {
+      var imgUrl = await uploadFileToAPI(imgVal, 'image');
+      data.img_url = imgUrl || imgVal;
+    } else {
+      data.img_url = imgVal;
+    }
+
+    // Upload video if base64
+    var vidVal = document.getElementById('f-video').value;
+    if (vidVal && vidVal.startsWith('data:')) {
+      var vidUrl = await uploadFileToAPI(vidVal, 'video');
+      data.video_url = vidUrl || vidVal;
+    } else {
+      data.video_url = vidVal;
+    }
+
+    // Upload gallery images that are still base64
+    if (data.gallery.length > 0) {
+      var uploaded = await Promise.all(data.gallery.map(async function(src) {
+        if (src.startsWith('data:')) { var u = await uploadFileToAPI(src, 'image'); return u || src; }
+        return src;
+      }));
+      data.gallery = uploaded;
+    }
+
+    try {
+      var method = eid ? 'PUT' : 'POST';
+      var url    = eid ? API_BASE + '/api/projects/' + eid : API_BASE + '/api/projects';
+      var r = await fetch(url, { method, headers: apiHeaders(true), body: JSON.stringify(data) });
+      var result = await r.json();
+      if (!r.ok) throw new Error(result.error || 'Erro no servidor');
+      _projectsCache = null; // invalidate cache
+      renderAdmin(); renderGalleries();
+      window.closeModal();
+      notify(eid ? '✅ Projeto atualizado!' : '✅ Projeto adicionado!');
+    } catch(err) {
+      notify('❌ Erro: ' + err.message);
+    }
+    if (btn) { btn.textContent = 'Guardar Projeto'; btn.disabled = false; }
+  };
+
+  async function uploadFileToAPI(dataUrl, type) {
+    try {
+      var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1];
+      var bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+      while (n--) u8arr[n] = bstr.charCodeAt(n);
+      var ext = mime.split('/')[1].replace('jpeg','jpg');
+      var file = new File([u8arr], Date.now() + '.' + ext, { type: mime });
+      var fd = new FormData(); fd.append('file', file);
+      var r = await fetch(API_BASE + '/api/upload', { method: 'POST', headers: { 'x-admin-token': _adminToken }, body: fd });
+      var d = await r.json();
+      return d.url || null;
+    } catch(e) {
+      console.warn('Upload falhou, a guardar base64 localmente:', e.message);
+      return null;
+    }
+  }
+
+  window.deleteProject = async function(id) {
+    if (!confirm('Tens a certeza que queres apagar este projeto?')) return;
+    try {
+      var r = await fetch(API_BASE + '/api/projects/' + id, { method: 'DELETE', headers: apiHeaders(true) });
+      if (!r.ok) throw new Error('Erro ao apagar');
+      _projectsCache = null;
+      renderAdmin(); renderGalleries();
+      notify('🗑️ Projeto apagado!');
+    } catch(err) {
+      notify('❌ ' + err.message);
+    }
+  };
+
+  function getWaNumber() {
+    var cfg = loadCfg();
+    return (cfg.whatsapp || '351936698894').replace(/\D/g,'') || '351936698894';
+  }
+
+  window.sendPlanToWhatsApp = function(plano) {
+    var text = '👋 Olá BrisaDev!\n\nTenho interesse no plano *' + plano + '*.\n\nPodes dar-me mais informações?';
+    window.open('https://wa.me/' + getWaNumber() + '?text=' + encodeURIComponent(text), '_blank');
+  };
+
+  window.submitForm = function(e) {
+    e.preventDefault();
+    var nome  = document.getElementById('cf-nome').value.trim();
+    var email = document.getElementById('cf-email').value.trim();
+    var tipo  = document.getElementById('cf-tipo').value.trim();
+    var msg   = document.getElementById('cf-msg').value.trim();
+
+    var text = '👋 Olá BrisaDev!\n\n'
+      + '🧑 *Nome:* ' + nome + '\n'
+      + '📧 *Email:* ' + email + '\n'
+      + (tipo ? '🛠️ *Projeto:* ' + tipo + '\n' : '')
+      + (msg  ? '\n💬 *Mensagem:*\n' + msg : '');
+
+    window.open('https://wa.me/' + getWaNumber() + '?text=' + encodeURIComponent(text), '_blank');
+    notify('✅ A abrir o WhatsApp...');
+    e.target.reset();
+  };
+
+  // ======= STRIPE CHECKOUT =======
+  // Config — replace with your real keys
+  var STRIPE_PUBLISHABLE_KEY = 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX'; // ← substitui pela tua chave pública Stripe
+  var STRIPE_PLANS = {
+    starter:   { name: 'Starter — Landing Page', price: 299, priceId: 'price_STARTER_ID' },
+    pro:       { name: 'Pro — Site Completo',    price: 699, priceId: 'price_PRO_ID'     },
+    ecommerce: { name: 'E-commerce',             price: 1299, priceId: 'price_ECOM_ID'   }
+  };
+
+  var _stripePlan = null;
+  var _stripe = null;
+  var _stripeElements = null;
+  var _stripeCard = null;
+
+  window.openStripeCheckout = function(plan) {
+    _stripePlan = STRIPE_PLANS[plan];
+    if (!_stripePlan) return;
+
+    document.getElementById('stripe-plan-name').textContent = _stripePlan.name;
+    document.getElementById('stripe-plan-price').textContent = _stripePlan.price;
+    document.getElementById('stripe-success').style.display = 'none';
+    document.getElementById('sc-name').value = '';
+    document.getElementById('sc-email').value = '';
+    document.getElementById('sc-phone').value = '';
+    document.getElementById('sc-desc').value = '';
+    document.getElementById('stripe-card-errors').style.display = 'none';
+    document.getElementById('stripe-submit-btn').style.display = 'flex';
+    document.getElementById('stripe-card-wrap').style.display = 'block';
+
+    var overlay = document.getElementById('stripe-overlay');
+    overlay.style.display = 'flex';
+
+    // Init Stripe Elements (lazy)
+    if (!_stripe) {
+      if (typeof Stripe === 'undefined') {
+        showStripeError('Stripe.js não carregou. Verifica a tua ligação.');
+        return;
+      }
+      _stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+      _stripeElements = _stripe.elements({
+        appearance: {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#ff2d78',
+            colorBackground: '#0f1628',
+            colorText: '#e8eaf6',
+            colorDanger: '#ef4444',
+            fontFamily: 'DM Sans, sans-serif',
+            borderRadius: '0px'
+          }
+        }
+      });
+      _stripeCard = _stripeElements.create('card', {
+        style: {
+          base: { color: '#e8eaf6', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', '::placeholder': { color: '#6b7280' } },
+          invalid: { color: '#ef4444' }
+        }
+      });
+      _stripeCard.mount('#stripe-card-element');
+      _stripeCard.on('change', function(e) {
+        var el = document.getElementById('stripe-card-errors');
+        if (e.error) { el.textContent = e.error.message; el.style.display = 'block'; }
+        else { el.style.display = 'none'; }
+      });
+    }
+  };
+
+  window.closeStripeModal = function(e) {
+    if (e && e.target !== document.getElementById('stripe-overlay')) return;
+    document.getElementById('stripe-overlay').style.display = 'none';
+  };
+
+  function showStripeError(msg) {
+    var el = document.getElementById('stripe-card-errors');
+    el.textContent = msg; el.style.display = 'block';
+  }
+
+  window.handleStripeSubmit = async function() {
+    var name  = document.getElementById('sc-name').value.trim();
+    var email = document.getElementById('sc-email').value.trim();
+    if (!name || !email) { showStripeError('Por favor preenche o nome e email.'); return; }
+
+    var btn = document.getElementById('stripe-submit-btn');
+    btn.textContent = '⏳ A processar...';
+    btn.disabled = true;
+
+    try {
+      // 1. Call your backend to create a PaymentIntent
+      var res = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: _stripePlan.priceId,
+          amount:  _stripePlan.price * 100, // cents
+          currency: 'eur',
+          name:  name,
+          email: email,
+          phone: document.getElementById('sc-phone').value,
+          desc:  document.getElementById('sc-desc').value,
+          plan:  _stripePlan.name
+        })
+      });
+
+      var data = await res.json();
+      if (!data.clientSecret) throw new Error(data.error || 'Erro no servidor');
+
+      // 2. Confirm the card payment
+      var result = await _stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: _stripeCard,
+          billing_details: { name: name, email: email }
+        }
+      });
+
+      if (result.error) {
+        showStripeError(result.error.message);
+      } else if (result.paymentIntent.status === 'succeeded') {
+        // 3. Success!
+        document.getElementById('stripe-submit-btn').style.display = 'none';
+        document.getElementById('stripe-card-wrap').style.display = 'none';
+        document.getElementById('stripe-success').style.display = 'block';
+        notify('✅ Pagamento confirmado! Obrigado, ' + name + '!');
+        // Notify via WhatsApp too
+        var waText = '🎉 *Novo Pagamento Recebido!*\n\n'
+          + '👤 ' + name + '\n📧 ' + email + '\n💰 ' + _stripePlan.name + ' — €' + _stripePlan.price;
+        window.open('https://wa.me/' + getWaNumber() + '?text=' + encodeURIComponent(waText), '_blank');
+      }
+    } catch(err) {
+      showStripeError('Erro: ' + err.message + '. Verifica que o servidor backend está activo.');
+    }
+
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Pagar com Segurança';
+    btn.disabled = false;
+  };
+  var DEFAULT_CFG = {
+    email:'brisadev@email.com', whatsapp:'+351 936 698 894', response:'Menos de 24h',
+    'hero-badge':'⚡ Desenvolvimento Web Premium',
+    'hero-line1':'Sites que', 'hero-line2':'Convertem.', 'hero-line3':'Experiências que ficam.',
+    'hero-sub':'Criamos websites modernos e futuristas que elevam a tua marca. Entrega entre 1 a 3 dias úteis.',
+    'stat1-num':'50+','stat1-lbl':'Projetos','stat2-num':'1-3','stat2-lbl':'Dias entrega',
+    'stat3-num':'100%','stat3-lbl':'Satisfação','stat4-num':'24/7','stat4-lbl':'Suporte',
+    'about-p1':'Olá! Sou o fundador da BrisaDev, uma agência de desenvolvimento web focada em criar sites modernos, rápidos e visualmente impactantes.',
+    'about-p2':'Com mais de 5 anos de experiência no desenvolvimento web, já ajudei dezenas de empresas a marcar presença online com sites que realmente funcionam.',
+    'about-p3':'A minha especialidade é transformar ideias em experiências digitais futuristas, sempre com foco na performance, usabilidade e conversão.',
+    'p1-price':'299','p1-delivery':'Entrega em 1-2 dias úteis','p1-features':'Landing Page Profissional\nDesign Personalizado\nMobile Responsivo\nFormulário de Contacto\nSEO Básico\n1 Revisão Incluída',
+    'p2-price':'699','p2-delivery':'Entrega em 2-3 dias úteis','p2-features':'Site Completo (até 5 páginas)\nDesign Premium Único\nAnimações & Interatividade\nPainel de Gestão de Conteúdo\nSEO Avançado\nGoogle Analytics\n3 Revisões Incluídas\nSuporte 30 dias',
+    'p3-price':'1299','p3-delivery':'Entrega em 3 dias úteis','p3-features':'Loja Online Completa\nGestão de Produtos\nPagamentos Online (MB Way, Cartão)\nCarrinho & Checkout\nPainel Admin Completo\nSEO E-commerce\nRevisões Ilimitadas\nSuporte 60 dias',
+    'auth-user':'brisadev','auth-pass':'brisa2025'
+  };
+
+  function loadCfg() { try { var s=localStorage.getItem('bd_cfg'); return s?Object.assign({},DEFAULT_CFG,JSON.parse(s)):Object.assign({},DEFAULT_CFG); } catch(e){ return Object.assign({},DEFAULT_CFG); } }
+  function saveCfg(c) { try{ localStorage.setItem('bd_cfg',JSON.stringify(c)); }catch(e){} }
+
+  function applyCfg() {
+    var c=loadCfg();
+    document.querySelectorAll('[data-cfg]').forEach(function(el){
+      var k=el.getAttribute('data-cfg');
+      if(c[k]!==undefined) el.textContent=c[k];
+    });
+    ['p1','p2','p3'].forEach(function(p){
+      document.querySelectorAll('[data-cfg-list="'+p+'-features"]').forEach(function(ul){
+        ul.innerHTML=(c[p+'-features']||'').split('\n').filter(Boolean).map(function(f){return '<li>'+f+'</li>';}).join('');
+      });
+      document.querySelectorAll('[data-cfg="'+p+'-delivery-badge"]').forEach(function(el){
+        el.textContent='Entrega: '+(c[p+'-delivery']||'');
+      });
+    });
+  }
+
+  window.doLogin = async function() {
+    var u = document.getElementById('login-user').value;
+    var p = document.getElementById('login-pass').value;
+    var btn = document.querySelector('#login-overlay .btn-primary');
+    if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+    try {
+      var r = await fetch(API_BASE + '/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      var d = await r.json();
+      if (r.ok && d.token) {
+        _adminToken = d.token;
+        sessionStorage.setItem('_adm', '1');
+        sessionStorage.setItem('_adm_token', d.token);
+        window.closeLogin();
+        window.showPage('admin');
+      } else {
+        throw new Error(d.error || 'Credenciais inválidas');
+      }
+    } catch(err) {
+      // Fallback to local credentials if API unreachable
+      var cfg = loadCfg();
+      if (u === (cfg['auth-user']||'brisadev') && p === (cfg['auth-pass']||'brisa2025')) {
+        _adminToken = 'local';
+        sessionStorage.setItem('_adm','1');
+        sessionStorage.setItem('_adm_token','local');
+        window.closeLogin();
+        window.showPage('admin');
+        notify('⚠️ Login local (API offline)');
+      } else {
+        var errEl = document.getElementById('login-error');
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+        setTimeout(function(){ errEl.style.display = 'none'; }, 3000);
+      }
+    }
+    if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+  };
+
+  window.switchTab = function(tab) {
+    document.getElementById('admin-tab-projects').style.display = tab==='projects'?'block':'none';
+    document.getElementById('admin-tab-settings').style.display = tab==='settings'?'block':'none';
+    document.getElementById('tab-projects').classList.toggle('active', tab==='projects');
+    document.getElementById('tab-settings').classList.toggle('active', tab==='settings');
+    if(tab==='settings') renderSettings();
+  };
+
+  function svRow(label,val){ return '<div class="sv-row"><span class="sv-label">'+label+'</span><span class="sv-val">'+val+'</span></div>'; }
+
+  function renderSettings() {
+    var c=loadCfg();
+    document.getElementById('sv-contact').innerHTML=svRow('Email',c.email)+svRow('WhatsApp',c.whatsapp)+svRow('Resposta',c.response);
+    document.getElementById('sv-hero').innerHTML=svRow('Badge',c['hero-badge'])+svRow('Linha 1',c['hero-line1'])+svRow('Linha 2',c['hero-line2'])+svRow('Linha 3',c['hero-line3'])+svRow('Subtítulo',c['hero-sub'].substring(0,50)+'…');
+    document.getElementById('sv-stats').innerHTML=svRow(c['stat1-lbl'],c['stat1-num'])+svRow(c['stat2-lbl'],c['stat2-num'])+svRow(c['stat3-lbl'],c['stat3-num'])+svRow(c['stat4-lbl'],c['stat4-num']);
+    document.getElementById('sv-about').innerHTML=svRow('P1',c['about-p1'].substring(0,55)+'…')+svRow('P2',c['about-p2'].substring(0,55)+'…')+svRow('P3',c['about-p3'].substring(0,55)+'…');
+    document.getElementById('sv-pricing').innerHTML=svRow('Starter',c['p1-price']+'€ — '+c['p1-delivery'])+svRow('Pro',c['p2-price']+'€ — '+c['p2-delivery'])+svRow('E-commerce',c['p3-price']+'€ — '+c['p3-delivery']);
+    document.getElementById('sv-auth').innerHTML=svRow('Utilizador',c['auth-user'])+svRow('Password','••••••••');
+  }
+
+  window.editSection = function(section) {
+    var c=loadCfg();
+    document.getElementById('sv-'+section).style.display='none';
+    document.getElementById('se-'+section).style.display='block';
+    document.querySelector('#sc-'+section+' .btn-edit').style.display='none';
+    if(section==='contact'){
+      document.getElementById('cfg-email').value=c.email||'';
+      document.getElementById('cfg-whatsapp').value=c.whatsapp||'';
+      document.getElementById('cfg-response').value=c.response||'';
+    } else if(section==='hero'){
+      document.getElementById('cfg-hero-badge').value=c['hero-badge']||'';
+      document.getElementById('cfg-hero-line1').value=c['hero-line1']||'';
+      document.getElementById('cfg-hero-line2').value=c['hero-line2']||'';
+      document.getElementById('cfg-hero-line3').value=c['hero-line3']||'';
+      document.getElementById('cfg-hero-sub').value=c['hero-sub']||'';
+    } else if(section==='stats'){
+      ['1','2','3','4'].forEach(function(n){
+        document.getElementById('cfg-stat'+n+'-num').value=c['stat'+n+'-num']||'';
+        document.getElementById('cfg-stat'+n+'-lbl').value=c['stat'+n+'-lbl']||'';
+      });
+    } else if(section==='about'){
+      document.getElementById('cfg-about-p1').value=c['about-p1']||'';
+      document.getElementById('cfg-about-p2').value=c['about-p2']||'';
+      document.getElementById('cfg-about-p3').value=c['about-p3']||'';
+    } else if(section==='pricing'){
+      ['1','2','3'].forEach(function(n){
+        document.getElementById('cfg-p'+n+'-price').value=c['p'+n+'-price']||'';
+        document.getElementById('cfg-p'+n+'-delivery').value=c['p'+n+'-delivery']||'';
+        document.getElementById('cfg-p'+n+'-features').value=c['p'+n+'-features']||'';
+      });
+    } else if(section==='auth'){
+      document.getElementById('cfg-auth-user').value=c['auth-user']||'';
+      document.getElementById('cfg-auth-pass').value='';
+    }
+  };
+
+  window.cancelEdit = function(section) {
+    document.getElementById('sv-'+section).style.display='block';
+    document.getElementById('se-'+section).style.display='none';
+    document.querySelector('#sc-'+section+' .btn-edit').style.display='';
+  };
+
+  window.saveSection = async function(section) {
+    var c = loadCfg();
+    var apiPayload = {};
+
+    if(section==='contact'){
+      c.email=document.getElementById('cfg-email').value;
+      c.whatsapp=document.getElementById('cfg-whatsapp').value;
+      c.response=document.getElementById('cfg-response').value;
+      apiPayload = { email: c.email, whatsapp: c.whatsapp, response_time: c.response };
+    } else if(section==='hero'){
+      c['hero-badge']=document.getElementById('cfg-hero-badge').value;
+      c['hero-line1']=document.getElementById('cfg-hero-line1').value;
+      c['hero-line2']=document.getElementById('cfg-hero-line2').value;
+      c['hero-line3']=document.getElementById('cfg-hero-line3').value;
+      c['hero-sub']=document.getElementById('cfg-hero-sub').value;
+      apiPayload = { hero_badge: c['hero-badge'], hero_line1: c['hero-line1'], hero_line2: c['hero-line2'], hero_line3: c['hero-line3'], hero_sub: c['hero-sub'] };
+    } else if(section==='stats'){
+      ['1','2','3','4'].forEach(function(n){
+        c['stat'+n+'-num']=document.getElementById('cfg-stat'+n+'-num').value;
+        c['stat'+n+'-lbl']=document.getElementById('cfg-stat'+n+'-lbl').value;
+        apiPayload['stat'+n+'_num'] = c['stat'+n+'-num'];
+        apiPayload['stat'+n+'_lbl'] = c['stat'+n+'-lbl'];
+      });
+    } else if(section==='about'){
+      c['about-p1']=document.getElementById('cfg-about-p1').value;
+      c['about-p2']=document.getElementById('cfg-about-p2').value;
+      c['about-p3']=document.getElementById('cfg-about-p3').value;
+      apiPayload = { about_p1: c['about-p1'], about_p2: c['about-p2'], about_p3: c['about-p3'] };
+    } else if(section==='pricing'){
+      ['1','2','3'].forEach(function(n){
+        c['p'+n+'-price']=document.getElementById('cfg-p'+n+'-price').value;
+        c['p'+n+'-delivery']=document.getElementById('cfg-p'+n+'-delivery').value;
+        c['p'+n+'-features']=document.getElementById('cfg-p'+n+'-features').value;
+        apiPayload['p'+n+'_price'] = c['p'+n+'-price'];
+        apiPayload['p'+n+'_delivery'] = c['p'+n+'-delivery'];
+        apiPayload['p'+n+'_features'] = c['p'+n+'-features'];
+      });
+    } else if(section==='auth'){
+      if(document.getElementById('cfg-auth-user').value) c['auth-user']=document.getElementById('cfg-auth-user').value;
+      var np=document.getElementById('cfg-auth-pass').value;
+      if(np) c['auth-pass']=np;
+      apiPayload = { admin_user: c['auth-user'] };
+      if(np) apiPayload.admin_pass = np;
+    }
+
+    // Save locally
+    saveCfg(c);
+    applyCfg();
+    renderSettings();
+    window.cancelEdit(section);
+
+    // Push to API (best effort)
+    try {
+      var r = await fetch(API_BASE + '/api/config', {
+        method: 'PATCH', headers: apiHeaders(true), body: JSON.stringify(apiPayload)
+      });
+      if (r.ok) {
+        notify('✅ Guardado na base de dados!');
+      } else {
+        notify('✅ Guardado localmente (API offline)');
+      }
+    } catch(e) {
+      notify('✅ Guardado localmente (API offline)');
+    }
+  };
+
+  // Patch showPage to call renderSettings when entering settings tab
+  var _origShowPage = window.showPage;
+  window.showPage = function(page) {
+    _origShowPage(page);
+    if(page==='admin') {
+      // default to projects tab
+      window.switchTab('projects');
+    }
+  };
+
+  function notify(msg) {
+    var n=document.getElementById('notification');
+    n.textContent=msg; n.classList.add('show');
+    setTimeout(function(){n.classList.remove('show');},3500);
+  }
+
+  document.getElementById('login-pass').addEventListener('keydown', function(e){
+    if(e.key==='Enter') window.doLogin();
+  });
+
+  // Init — load config from API, then render
+  (async function init() {
+    // Try to load config from API and merge into local cache
+    try {
+      var r = await fetch(API_BASE + '/api/config');
+      if (r.ok) {
+        var apiCfg = await r.json();
+        // Map API snake_case keys to local camelCase
+        var mapped = {
+          email: apiCfg.email, whatsapp: apiCfg.whatsapp, response: apiCfg.response_time,
+          'hero-badge': apiCfg.hero_badge, 'hero-line1': apiCfg.hero_line1,
+          'hero-line2': apiCfg.hero_line2, 'hero-line3': apiCfg.hero_line3,
+          'hero-sub': apiCfg.hero_sub,
+          'stat1-num': apiCfg.stat1_num, 'stat1-lbl': apiCfg.stat1_lbl,
+          'stat2-num': apiCfg.stat2_num, 'stat2-lbl': apiCfg.stat2_lbl,
+          'stat3-num': apiCfg.stat3_num, 'stat3-lbl': apiCfg.stat3_lbl,
+          'stat4-num': apiCfg.stat4_num, 'stat4-lbl': apiCfg.stat4_lbl,
+          'about-p1': apiCfg.about_p1, 'about-p2': apiCfg.about_p2, 'about-p3': apiCfg.about_p3,
+          'p1-price': apiCfg.p1_price, 'p1-delivery': apiCfg.p1_delivery, 'p1-features': apiCfg.p1_features,
+          'p2-price': apiCfg.p2_price, 'p2-delivery': apiCfg.p2_delivery, 'p2-features': apiCfg.p2_features,
+          'p3-price': apiCfg.p3_price, 'p3-delivery': apiCfg.p3_delivery, 'p3-features': apiCfg.p3_features
+        };
+        saveCfg(Object.assign(loadCfg(), mapped));
+      }
+    } catch(e) { /* offline, use localStorage */ }
+
+    applyCfg();
+    await renderGalleries();
+  })();
+})();
+</script>
+</body>
+</html>
