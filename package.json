@@ -1,25 +1,20 @@
 {
-  "name": "brisadev-backend",
+  "name": "brisadev",
   "version": "2.0.0",
-  "description": "BrisaDev — Backend com Supabase + Stripe",
-  "main": "server.js",
+  "description": "BrisaDev — Netlify Functions + Supabase + Stripe",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "netlify dev",
+    "build": "echo 'static'",
     "db:seed": "node scripts/seed.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.44.4",
     "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "stripe": "^15.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "netlify-cli": "^17.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

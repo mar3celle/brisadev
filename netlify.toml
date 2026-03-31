@@ -1,0 +1,25 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  command = "npm install"
+
+[functions]
+  node_bundler = "nft"
+
+# /api/* → netlify function
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/api/:splat"
+  status = 200
+  force  = true
+
+# SPA fallback
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+[dev]
+  functions = "netlify/functions"
+  port      = 8888
+  targetPort = 3000
