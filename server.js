@@ -11,6 +11,7 @@ require('dotenv').config();
 const express    = require('express');
 const cors       = require('cors');
 const path       = require('path');
+const crypto     = require('crypto');
 const bcrypt     = require('bcrypt');
 const multer     = require('multer');
 const stripe     = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -51,10 +52,31 @@ async function sendEmail({ to, subject, html }) {
   catch (e) { console.error('Email error:', e.message); }
 }
 
+// ─── JWT helpers (sem dependências externas) ─────────────────────────────────
+function signToken(payload) {
+  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig  = crypto.createHmac('sha256', process.env.JWT_SECRET).update(data).digest('base64url');
+  return `${data}.${sig}`;
+}
+function verifyToken(token) {
+  if (!token || !process.env.JWT_SECRET) return null;
+  const dot = token.lastIndexOf('.');
+  if (dot === -1) return null;
+  const data = token.slice(0, dot);
+  const sig  = token.slice(dot + 1);
+  const expected = crypto.createHmac('sha256', process.env.JWT_SECRET).update(data).digest('base64url');
+  if (sig !== expected) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(data, 'base64url').toString());
+    if (payload.exp && Date.now() > payload.exp) return null;
+    return payload;
+  } catch { return null; }
+}
+
 // ─── Admin auth middleware ────────────────────────────────────────────────────
 async function requireAdmin(req, res, next) {
   const token = req.headers['x-admin-token'];
-  if (!token || token !== process.env.ADMIN_SESSION_TOKEN) {
+  if (!verifyToken(token)) {
     return res.status(401).json({ error: 'Não autorizado' });
   }
   next();
@@ -71,7 +93,8 @@ app.post('/api/auth/login', async (req, res) => {
   if (!cfg || cfg.admin_user !== username) return res.status(401).json({ error: 'Credenciais inválidas' });
   const valid = await bcrypt.compare(password, cfg.admin_pass_hash);
   if (!valid) return res.status(401).json({ error: 'Credenciais inválidas' });
-  res.json({ token: process.env.ADMIN_SESSION_TOKEN, ok: true });
+  const token = signToken({ role: 'admin', exp: Date.now() + 24 * 60 * 60 * 1000 });
+  res.json({ token, ok: true });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

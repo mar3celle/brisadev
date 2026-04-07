@@ -360,16 +360,40 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 <!-- Login Overlay -->
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
-    <div style="font-size:2rem;margin-bottom:1rem">🔐</div>
-    <h2>Área <span style="color:var(--accent)">Admin</span></h2>
-    <p>Introduz as credenciais para aceder</p>
-    <input type="text" id="login-user" placeholder="Utilizador" />
-    <input type="password" id="login-pass" placeholder="Password" />
-    <div class="login-error" id="login-error">Credenciais inválidas</div>
-    <button class="btn-primary" style="width:100%;text-align:center" onclick="doLogin()">Entrar</button>
-    <div style="margin-top:1rem">
-      <a href="#" onclick="closeLogin()" style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text-dim);text-decoration:none;cursor:none">← Voltar ao site</a>
+
+    <!-- Login normal -->
+    <div id="login-form-wrap">
+      <div style="font-size:2rem;margin-bottom:1rem">🔐</div>
+      <h2>Área <span style="color:var(--accent)">Admin</span></h2>
+      <p>Introduz as credenciais para aceder</p>
+      <input type="text" id="login-user" placeholder="Utilizador" />
+      <input type="password" id="login-pass" placeholder="Password" />
+      <div class="login-error" id="login-error">Credenciais inválidas</div>
+      <button class="btn-primary" style="width:100%;text-align:center" onclick="doLogin()">Entrar</button>
+      <div style="margin-top:1.2rem;text-align:center">
+        <a href="#" onclick="toggleSetupForm()" style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--text-dim);text-decoration:none;cursor:none">⚙️ Primeiro acesso? Configurar admin</a>
+      </div>
+      <div style="margin-top:.5rem;text-align:center">
+        <a href="#" onclick="closeLogin()" style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--text-dim);text-decoration:none;cursor:none">← Voltar ao site</a>
+      </div>
     </div>
+
+    <!-- Setup inicial -->
+    <div id="setup-form-wrap" style="display:none">
+      <div style="font-size:2rem;margin-bottom:1rem">⚙️</div>
+      <h2>Configurar <span style="color:var(--accent)">Admin</span></h2>
+      <p style="margin-bottom:1.5rem">Configura as tuas credenciais pela primeira vez.<br>Precisas do <code style="color:var(--accent);background:rgba(255,45,120,.1);padding:.1rem .4rem">SETUP_SECRET</code> definido no Netlify.</p>
+      <input type="text"     id="setup-secret"   placeholder="SETUP_SECRET (env var)" />
+      <input type="text"     id="setup-user"     placeholder="Novo utilizador (ex: admin)" />
+      <input type="password" id="setup-pass"     placeholder="Nova password (mín. 6 chars)" />
+      <div class="login-error" id="setup-error"></div>
+      <div id="setup-success" style="display:none;color:#22c55e;font-family:'Space Mono',monospace;font-size:.7rem;margin-bottom:1rem;padding:.8rem;border:1px solid #22c55e;background:rgba(34,197,94,.08)"></div>
+      <button class="btn-primary" style="width:100%;text-align:center" onclick="doSetup()">Criar Credenciais</button>
+      <div style="margin-top:1rem;text-align:center">
+        <a href="#" onclick="toggleSetupForm()" style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--text-dim);text-decoration:none;cursor:none">← Voltar ao login</a>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1417,21 +1441,31 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
     resetGalleryUpload([]);
     document.getElementById('modal-overlay').classList.add('open');
   };
-  window.openEditModal = function(id) {
-    var p=load().find(function(x){return x.id===id;});
-    if(!p) return;
+  window.openEditModal = async function(id) {
+    // Try cache first, otherwise fetch
+    if (!_projectsCache) await loadProjects();
+    var p = (_projectsCache || []).find(function(x){ return String(x.id) === String(id); });
+    if (!p) {
+      // Last resort: fetch individual project
+      try {
+        var r = await fetch(API_BASE + '/api/projects/' + id);
+        if (r.ok) p = normalize(await r.json());
+      } catch(e) {}
+    }
+    if (!p) { notify('❌ Projeto não encontrado'); return; }
+
     document.getElementById('modal-title').innerHTML='Editar <span>Projeto</span>';
-    document.getElementById('edit-id').value=p.id;
-    document.getElementById('f-name').value=p.name||'';
-    document.getElementById('f-desc').value=p.desc||'';
-    document.getElementById('f-cat').value=p.category||'website';
-    document.getElementById('f-status').value=p.status||'live';
-    document.getElementById('f-url').value=p.url||'';
-    document.getElementById('f-tech').value=(p.tech||[]).join(', ');
-    document.getElementById('f-icon').value=p.icon||'🌐';
-    resetImgUpload(p.img||'');
-    resetVidUpload(p.video||'');
-    resetGalleryUpload(p.gallery||[]);
+    document.getElementById('edit-id').value = p.id;
+    document.getElementById('f-name').value  = p.name || '';
+    document.getElementById('f-desc').value  = p.desc || p.description || '';
+    document.getElementById('f-cat').value   = p.category || 'website';
+    document.getElementById('f-status').value= p.status || 'live';
+    document.getElementById('f-url').value   = p.url || '';
+    document.getElementById('f-tech').value  = (p.tech || []).join(', ');
+    document.getElementById('f-icon').value  = p.icon || '🌐';
+    resetImgUpload(p.img || p.img_url || '');
+    resetVidUpload(p.video || p.video_url || '');
+    resetGalleryUpload(p.gallery || []);
     document.getElementById('modal-overlay').classList.add('open');
   };
   window.closeModal = function() {
@@ -1442,62 +1476,83 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
   });
 
   window.saveProject = async function() {
-    var eid = document.getElementById('edit-id').value;
-    var data = {
-      name:        document.getElementById('f-name').value,
-      description: document.getElementById('f-desc').value,
-      category:    document.getElementById('f-cat').value,
-      status:      document.getElementById('f-status').value,
-      url:         document.getElementById('f-url').value,
-      tech:        document.getElementById('f-tech').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
-      icon:        document.getElementById('f-icon').value || '🌐',
-      gallery:     JSON.parse(document.getElementById('f-gallery').value || '[]')
-    };
-    if (!data.name) { notify('⚠️ Nome obrigatório!'); return; }
+    var eid  = document.getElementById('edit-id').value.trim();
+    var name = document.getElementById('f-name').value.trim();
+    if (!name) { notify('⚠️ Nome obrigatório!'); return; }
 
     var btn = document.querySelector('#modal-overlay .btn-primary');
     if (btn) { btn.textContent = '⏳ A guardar...'; btn.disabled = true; }
 
-    // Upload image if base64 (new file selected)
+    // Build payload
+    var payload = {
+      name,
+      description: document.getElementById('f-desc').value.trim(),
+      category:    document.getElementById('f-cat').value,
+      status:      document.getElementById('f-status').value,
+      url:         document.getElementById('f-url').value.trim(),
+      tech:        document.getElementById('f-tech').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+      icon:        document.getElementById('f-icon').value.trim() || '🌐',
+      gallery:     JSON.parse(document.getElementById('f-gallery').value || '[]')
+    };
+
+    // Handle image
     var imgVal = document.getElementById('f-img').value;
     if (imgVal && imgVal.startsWith('data:')) {
-      var imgUrl = await uploadFileToAPI(imgVal, 'image');
-      data.img_url = imgUrl || imgVal;
+      var uploaded = await uploadFileToAPI(imgVal);
+      payload.img_url = uploaded || imgVal; // fallback to base64 if upload fails
     } else {
-      data.img_url = imgVal;
+      payload.img_url = imgVal || '';
     }
 
-    // Upload video if base64
+    // Handle video
     var vidVal = document.getElementById('f-video').value;
     if (vidVal && vidVal.startsWith('data:')) {
-      var vidUrl = await uploadFileToAPI(vidVal, 'video');
-      data.video_url = vidUrl || vidVal;
+      var uploadedVid = await uploadFileToAPI(vidVal);
+      payload.video_url = uploadedVid || vidVal;
     } else {
-      data.video_url = vidVal;
+      payload.video_url = vidVal || '';
     }
 
-    // Upload gallery images that are still base64
-    if (data.gallery.length > 0) {
-      var uploaded = await Promise.all(data.gallery.map(async function(src) {
-        if (src.startsWith('data:')) { var u = await uploadFileToAPI(src, 'image'); return u || src; }
+    // Upload base64 gallery images
+    if (payload.gallery.length > 0) {
+      payload.gallery = await Promise.all(payload.gallery.map(async function(src) {
+        if (src && src.startsWith('data:')) {
+          var u = await uploadFileToAPI(src);
+          return u || src;
+        }
         return src;
       }));
-      data.gallery = uploaded;
     }
 
     try {
       var method = eid ? 'PUT' : 'POST';
-      var url    = eid ? API_BASE + '/api/projects/' + eid : API_BASE + '/api/projects';
-      var r = await fetch(url, { method, headers: apiHeaders(true), body: JSON.stringify(data) });
-      var result = await r.json();
-      if (!r.ok) throw new Error(result.error || 'Erro no servidor');
-      _projectsCache = null; // invalidate cache
-      renderAdmin(); renderGalleries();
+      var url    = eid ? (API_BASE + '/api/projects/' + eid) : (API_BASE + '/api/projects');
+
+      console.log('[saveProject]', method, url, JSON.stringify(payload).slice(0, 200));
+
+      var r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': _adminToken },
+        body: JSON.stringify(payload)
+      });
+
+      var text = await r.text();
+      var result;
+      try { result = JSON.parse(text); } catch(e) { throw new Error('Resposta inválida do servidor: ' + text.slice(0, 100)); }
+
+      if (!r.ok) throw new Error(result.error || ('HTTP ' + r.status));
+
+      _projectsCache = null; // invalida cache
+      await renderGalleries();
+      await renderAdmin();
       window.closeModal();
       notify(eid ? '✅ Projeto atualizado!' : '✅ Projeto adicionado!');
-    } catch(err) {
-      notify('❌ Erro: ' + err.message);
+
+    } catch(e) {
+      console.error('[saveProject] erro:', e);
+      notify('❌ Erro: ' + e.message);
     }
+
     if (btn) { btn.textContent = 'Guardar Projeto'; btn.disabled = false; }
   };
 
@@ -1525,13 +1580,21 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
   window.deleteProject = async function(id) {
     if (!confirm('Tens a certeza que queres apagar este projeto?')) return;
     try {
-      var r = await fetch(API_BASE + '/api/projects/' + id, { method: 'DELETE', headers: apiHeaders(true) });
-      if (!r.ok) throw new Error('Erro ao apagar');
+      var r = await fetch(API_BASE + '/api/projects/' + id, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': _adminToken }
+      });
+      var text = await r.text();
+      var result;
+      try { result = JSON.parse(text); } catch(e) { throw new Error('Resposta inválida: ' + text.slice(0,100)); }
+      if (!r.ok) throw new Error(result.error || 'HTTP ' + r.status);
       _projectsCache = null;
-      renderAdmin(); renderGalleries();
+      await renderAdmin();
+      await renderGalleries();
       notify('🗑️ Projeto apagado!');
-    } catch(err) {
-      notify('❌ ' + err.message);
+    } catch(e) {
+      console.error('[deleteProject]', e);
+      notify('❌ Erro ao apagar: ' + e.message);
     }
   };
 
@@ -1732,43 +1795,117 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
     });
   }
 
+  window.toggleSetupForm = function() {
+    var lf = document.getElementById('login-form-wrap');
+    var sf = document.getElementById('setup-form-wrap');
+    var showing = sf.style.display !== 'none';
+    lf.style.display = showing ? 'block' : 'none';
+    sf.style.display = showing ? 'none'  : 'block';
+    document.getElementById('setup-error').style.display = 'none';
+    document.getElementById('setup-success').style.display = 'none';
+  };
+
+  window.doSetup = async function() {
+    var secret = document.getElementById('setup-secret').value.trim();
+    var user   = document.getElementById('setup-user').value.trim();
+    var pass   = document.getElementById('setup-pass').value;
+    var errEl  = document.getElementById('setup-error');
+    var okEl   = document.getElementById('setup-success');
+    errEl.style.display = 'none';
+    okEl.style.display  = 'none';
+
+    if (!secret || !user || !pass) {
+      errEl.textContent = 'Preenche todos os campos';
+      errEl.style.display = 'block'; return;
+    }
+
+    var btn = document.querySelector('#setup-form-wrap .btn-primary');
+    if (btn) { btn.textContent = '⏳ A configurar...'; btn.disabled = true; }
+
+    try {
+      var r = await fetch(API_BASE + '/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setup_secret: secret, username: user, password: pass })
+      });
+      var d = await r.json();
+      if (r.ok) {
+        okEl.textContent = d.message || '✅ Credenciais criadas!';
+        okEl.style.display = 'block';
+        // Pre-fill login form
+        document.getElementById('login-user').value = user;
+        document.getElementById('login-pass').value = pass;
+        setTimeout(function() { window.toggleSetupForm(); }, 2000);
+      } else {
+        errEl.textContent = d.error || 'Erro desconhecido';
+        errEl.style.display = 'block';
+      }
+    } catch(e) {
+      errEl.textContent = 'Erro de rede: ' + e.message;
+      errEl.style.display = 'block';
+    }
+
+    if (btn) { btn.textContent = 'Criar Credenciais'; btn.disabled = false; }
+  };
+
   window.doLogin = async function() {
-    var u = document.getElementById('login-user').value;
-    var p = document.getElementById('login-pass').value;
+    var u   = document.getElementById('login-user').value.trim();
+    var p   = document.getElementById('login-pass').value;
     var btn = document.querySelector('#login-overlay .btn-primary');
+    var errEl = document.getElementById('login-error');
     if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+    errEl.style.display = 'none';
+
+    var loginOk = false;
+
+    // 1. Try API login
     try {
       var r = await fetch(API_BASE + '/api/auth/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: u, password: p })
       });
       var d = await r.json();
       if (r.ok && d.token) {
         _adminToken = d.token;
-        sessionStorage.setItem('_adm', '1');
         sessionStorage.setItem('_adm_token', d.token);
-        window.closeLogin();
-        window.showPage('admin');
+        loginOk = true;
+        console.log('[login] API ok');
       } else {
-        throw new Error(d.error || 'Credenciais inválidas');
-      }
-    } catch(err) {
-      // Fallback to local credentials if API unreachable
-      var cfg = loadCfg();
-      if (u === (cfg['auth-user']||'brisadev') && p === (cfg['auth-pass']||'brisa2025')) {
-        _adminToken = 'local';
-        sessionStorage.setItem('_adm','1');
-        sessionStorage.setItem('_adm_token','local');
-        window.closeLogin();
-        window.showPage('admin');
-        notify('⚠️ Login local (API offline)');
-      } else {
-        var errEl = document.getElementById('login-error');
-        errEl.textContent = err.message;
+        // API reachable but rejected credentials
+        errEl.textContent = d.error || 'Credenciais inválidas';
         errEl.style.display = 'block';
-        setTimeout(function(){ errEl.style.display = 'none'; }, 3000);
+        setTimeout(function(){ errEl.style.display='none'; }, 3000);
+        if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+        return;
+      }
+    } catch(apiErr) {
+      // 2. API offline — fallback to localStorage credentials
+      console.warn('[login] API offline, fallback local:', apiErr.message);
+      var cfg = loadCfg();
+      var localUser = cfg['auth-user'] || 'brisadev';
+      var localPass = cfg['auth-pass'] || 'brisa2025';
+      if (u === localUser && p === localPass) {
+        // Use a fake token — CRUD will silently fail on server but localStorage works
+        _adminToken = '__local__';
+        sessionStorage.setItem('_adm_token', '__local__');
+        loginOk = true;
+        notify('⚠️ Modo offline — alterações guardadas localmente');
+      } else {
+        errEl.textContent = 'Credenciais inválidas';
+        errEl.style.display = 'block';
+        setTimeout(function(){ errEl.style.display='none'; }, 3000);
+        if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+        return;
       }
     }
+
+    if (loginOk) {
+      sessionStorage.setItem('_adm', '1');
+      window.closeLogin();
+      window.showPage('admin');
+    }
+
     if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
   };
 
@@ -1918,6 +2055,9 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
 
   document.getElementById('login-pass').addEventListener('keydown', function(e){
     if(e.key==='Enter') window.doLogin();
+  });
+  document.getElementById('setup-pass').addEventListener('keydown', function(e){
+    if(e.key==='Enter') window.doSetup();
   });
 
   // Init — load config from API, then render

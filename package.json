@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.44.4",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "nodemailer": "^6.9.13",
     "stripe": "^15.10.0"
   },
