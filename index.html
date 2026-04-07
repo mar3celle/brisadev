@@ -1105,7 +1105,7 @@ footer{padding:2rem 4rem;border-top:1px solid var(--border);display:flex;align-i
     } else if (p.video) {
       media = '<video src="'+p.video+'" muted loop playsinline style="width:100%;height:100%;object-fit:cover" onmouseenter="this.play()" onmouseleave="this.pause()"></video>';
     }
-    return '<div class="project-card" data-cat="'+p.category+'" onclick="openDetail('+p.id+')" style="cursor:none">'
+    return '<div class="project-card" data-cat="'+p.category+'" onclick="openDetail(\''+p.id+'\')" style="cursor:none">'
       +'<div class="project-media">'
       + media
       +'<div class="project-media-placeholder" style="'+(p.img||p.video?'display:none':'')+'">'+( p.icon||'🌐')+'</div>'
